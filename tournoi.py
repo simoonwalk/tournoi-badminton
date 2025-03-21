@@ -149,12 +149,11 @@ with tab2:
 
     if st.session_state.matchs:
         matches = st.session_state.matchs
-
-        # Pour gestion des suppressions groupées
         selected = []
-
-        # Dictionnaire pour compter les rencontres entre deux joueurs
         rencontre_compteur = {}
+
+        # Titre de colonne
+        st.markdown("### 📋 Résumé des matchs enregistrés")
 
         for i, match in enumerate(matches):
             j1 = match["joueur1"]
@@ -168,23 +167,29 @@ with tab2:
 
             num_rencontre = rencontre_compteur[key]
 
-            col1, col2, col3, col4 = st.columns([4, 3, 3, 1])
-            with col1:
-                st.markdown(f"**{j1} vs {j2}** — *{num_rencontre}ᵉ rencontre*")
-            with col2:
-                st.markdown("**Scores :** " + ", ".join(match["scores"]))
-            with col3:
-                st.markdown(f"**Vainqueur :** {match['vainqueur']}")
-            with col4:
-                if st.button("🗑️", key=f"del_{i}"):
-                    st.session_state.match_to_delete = i
-                    st.session_state.just_deleted = True
-                    break  # Sortir de la boucle pour éviter conflit state
+            # Définir une couleur de fond alternée
+            bg_color = "#f9f9f9" if i % 2 == 0 else "#ffffff"
+            st.markdown(
+                f"""
+                <div style="background-color:{bg_color}; padding: 10px; border-radius: 8px; margin-bottom: 5px; display:flex; align-items:center; justify-content: space-between;">
+                    <div>
+                        <b>{j1}</b> vs <b>{j2}</b> — {num_rencontre}<sup>e</sup> rencontre<br>
+                        <small>Scores : {', '.join(match['scores'])} — <b>Vainqueur : {match['vainqueur']}</b></small>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <form action="?del={i}" method="post">
+                            <button name="suppr_unique" style="background-color:#ff4d4d; color:white; border:none; padding:6px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
+                        </form>
+                        <input type="checkbox" name="selected_{i}" id="check_{i}" style="transform:scale(1.2);" />
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            # Pour suppression groupée (via Streamlit)
+            selected.append(st.checkbox("Sélectionner ce match", key=f"check_{i}", label_visibility="collapsed"))
 
-            # Checkbox pour suppression groupée
-            selected.append(st.checkbox("Sélectionner", key=f"check_{i}"))
-
-        # Bouton pour supprimer en masse
+        # Bouton de suppression groupée
         if any(selected):
             indices_to_delete = [i for i, checked in enumerate(selected) if checked]
             if st.button("🗑️ Supprimer la sélection"):
@@ -193,12 +198,22 @@ with tab2:
                 st.success(f"{len(indices_to_delete)} match(s) supprimé(s)")
                 st.rerun()
 
-        # Suppression unique en fin de boucle
+        # Suppression individuelle sécurisée
         if st.session_state.just_deleted and st.session_state.match_to_delete is not None:
             del st.session_state.matchs[st.session_state.match_to_delete]
             st.session_state.match_to_delete = None
             st.session_state.just_deleted = False
             st.rerun()
+
+        # Vérifie si un bouton suppression unique a été cliqué via paramètre d'URL
+        if "del" in st.query_params:
+            try:
+                index = int(st.query_params["del"])
+                if 0 <= index < len(st.session_state.matchs):
+                    del st.session_state.matchs[index]
+                    st.rerun()
+            except:
+                pass
 
     else:
         st.info("Aucun match enregistré.")
