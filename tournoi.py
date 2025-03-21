@@ -99,11 +99,17 @@ with tab1:
 
     players = get_all_players()
 
-    joueur1 = st.selectbox("Joueur 1", options=[""] + players, index=0)
-    joueur1 = st.text_input("Ou saisissez un nom", value=joueur1, key="joueur1_input")
+    joueur1 = st.text_input("Joueur 1", placeholder="Nom du joueur 1")
+    if joueur1 and players:
+        suggestions1 = [p for p in players if joueur1.lower() in p.lower() and p.lower() != joueur1.lower()]
+        if suggestions1:
+            st.caption(f"Suggestions : {', '.join(suggestions1)}")
 
-    joueur2 = st.selectbox("Joueur 2", options=[""] + players, index=0)
-    joueur2 = st.text_input("Ou saisissez un nom", value=joueur2, key="joueur2_input")
+    joueur2 = st.text_input("Joueur 2", placeholder="Nom du joueur 2")
+    if joueur2 and players:
+        suggestions2 = [p for p in players if joueur2.lower() in p.lower() and p.lower() != joueur2.lower()]
+        if suggestions2:
+            st.caption(f"Suggestions : {', '.join(suggestions2)}")
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -142,18 +148,59 @@ with tab2:
     st.subheader("📜 Historique des matchs")
 
     if st.session_state.matchs:
+        matches = st.session_state.matchs
         rencontre_compteur = {}
+        selected_to_delete = []  # Liste des matchs à supprimer en masse
 
-        for i, match in enumerate(st.session_state.matchs):
-            j1, j2 = match["joueur1"], match["joueur2"]
+        for i, match in enumerate(matches):
+            j1 = match["joueur1"]
+            j2 = match["joueur2"]
             key = tuple(sorted([j1, j2]))
-            rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
 
-            st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
-            st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
+            if key not in rencontre_compteur:
+                rencontre_compteur[key] = 1
+            else:
+                rencontre_compteur[key] += 1
 
-            if st.button("🗑️ Supprimer", key=f"del_{i}"):
-                del st.session_state.matchs[i]
+            num_rencontre = rencontre_compteur[key]
+
+            # Alterner la couleur de fond pour le Dark Mode
+            bg_color = "#222" if i % 2 == 0 else "#333"
+            text_color = "#ddd"
+
+            # Affichage sous forme de boîtes claires et stylées
+            col1, col2, col3 = st.columns([7, 2, 1])
+
+            with col1:
+                st.markdown(
+                    f"""
+                    <div style="background-color:{bg_color}; padding: 12px; border-radius: 8px; 
+                                border: 1px solid #444; color: {text_color};">
+                        <b style="color:#fff;">{j1}</b> vs <b style="color:#fff;">{j2}</b> 
+                        — {num_rencontre}<sup>e</sup> rencontre<br>
+                        <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
+                        — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+            with col2:
+                if st.button("🗑️", key=f"del_{i}"):
+                    del st.session_state.matchs[i]
+                    st.rerun()
+
+            with col3:
+                # Ajout de la case à cocher pour suppression groupée
+                if st.checkbox(" ", key=f"check_{i}"):
+                    selected_to_delete.append(i)
+
+        # Suppression groupée
+        if selected_to_delete:
+            if st.button("🗑️ Supprimer la sélection"):
+                for index in sorted(selected_to_delete, reverse=True):
+                    del st.session_state.matchs[index]
+                st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
                 st.rerun()
 
     else:
