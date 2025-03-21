@@ -145,7 +145,7 @@ with tab1:
 
 # --- Onglet 2 : Historique des matchs ---
 with tab2:
-    st.subheader("Historique des matchs")
+    st.subheader("📜 Historique des matchs")
 
     if st.session_state.matchs:
         matches = st.session_state.matchs
@@ -164,28 +164,32 @@ with tab2:
 
             num_rencontre = rencontre_compteur[key]
 
-            # Alterner la couleur de fond pour chaque boîte
-            bg_color = "#f5f5f5" if i % 2 == 0 else "#ffffff"
+            # Alterner la couleur de fond pour le Dark Mode
+            bg_color = "#222" if i % 2 == 0 else "#333"
+            text_color = "#ddd"
 
-            # Boîtage clair avec bordure et padding
+            # Boîtage en Dark Mode
             st.markdown(
                 f"""
-                <div style="background-color:{bg_color}; padding: 10px; border: 1px solid #ddd; 
-                            border-radius: 8px; margin-bottom: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <b>{j1}</b> vs <b>{j2}</b> — {num_rencontre}<sup>e</sup> rencontre<br>
-                            <small>Scores : {', '.join(match['scores'])} — <b>Vainqueur : {match['vainqueur']}</b></small>
-                        </div>
-                        <div style="display:flex; gap:10px;">
-                            <form action="?del={i}" method="post">
-                                <button name="suppr_unique" style="background-color:#ff4d4d; color:white; 
-                                        border:none; padding:6px 10px; border-radius:5px; cursor:pointer;">
-                                    🗑️
-                                </button>
-                            </form>
-                            <input type="checkbox" name="selected_{i}" id="check_{i}" style="transform:scale(1.2);" />
-                        </div>
+                <div style="background-color:{bg_color}; padding: 12px; border-radius: 8px; margin-bottom: 8px;
+                            border: 1px solid #444; color: {text_color}; display: flex; 
+                            justify-content: space-between; align-items: center;">
+                    <div>
+                        <b style="color:#fff;">{j1}</b> vs <b style="color:#fff;">{j2}</b> 
+                        — {num_rencontre}<sup>e</sup> rencontre<br>
+                        <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
+                        — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <form action="?del={i}" method="post">
+                            <button name="suppr_unique" 
+                                    style="background-color:#ff4d4d; color:white; border:none; 
+                                    padding:6px 10px; border-radius:5px; cursor:pointer;">
+                                🗑️
+                            </button>
+                        </form>
+                        <input type="checkbox" name="selected_{i}" id="check_{i}" 
+                               style="transform:scale(1.2); accent-color: #ff4d4d;" />
                     </div>
                 </div>
                 """,
