@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import re
 
+# Suppresion des matchs
+if 'match_to_delete' not in st.session_state:
+    st.session_state.match_to_delete = None
+
 # Initialisation des données
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
@@ -141,12 +145,17 @@ else:
 st.header("3. Historique des matchs")
 
 if st.session_state.matchs:
-    for i, match in enumerate(st.session_state.matchs):
-        with st.expander(f"{match['joueur1']} vs {match['joueur2']}"):
-            st.write("**Scores :**", ", ".join(match['scores']))
-            st.write("**Vainqueur :**", match['vainqueur'])
-            if st.button("🗑️ Supprimer ce match", key=f"del_{i}"):
-                st.session_state.matchs.pop(i)
-                st.experimental_rerun()
+   for i, match in enumerate(st.session_state.matchs):
+    with st.expander(f"{match['joueur1']} vs {match['joueur2']}"):
+        st.write("**Scores :**", ", ".join(match['scores']))
+        st.write("**Vainqueur :**", match['vainqueur'])
+        if st.button("🗑️ Supprimer ce match", key=f"del_{i}"):
+            st.session_state.match_to_delete = i
+
+# Suppression en dehors de la boucle
+if st.session_state.match_to_delete is not None:
+    st.session_state.matchs.pop(st.session_state.match_to_delete)
+    st.session_state.match_to_delete = None
+    st.experimental_rerun()
 else:
     st.info("Aucun match enregistré.")
