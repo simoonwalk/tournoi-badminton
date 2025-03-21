@@ -149,7 +149,6 @@ with tab2:
 
     if st.session_state.matchs:
         matches = st.session_state.matchs
-        selected = []
         rencontre_compteur = {}
 
         for i, match in enumerate(matches):
@@ -180,40 +179,28 @@ with tab2:
                         <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
                         — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
                     </div>
-                    <div style="display:flex; gap:10px;">
-                        <form action="?del={i}" method="post">
-                            <button name="suppr_unique" 
-                                    style="background-color:#ff4d4d; color:white; border:none; 
-                                    padding:6px 10px; border-radius:5px; cursor:pointer;">
-                                🗑️
-                            </button>
-                        </form>
-                        <input type="checkbox" name="selected_{i}" id="check_{i}" 
-                               style="transform:scale(1.2); accent-color: #ff4d4d;" />
+                    <div>
+                        <button onClick="window.location.href='?delete_match={i}'"
+                                style="background-color:#ff4d4d; color:white; border:none; 
+                                padding:6px 10px; border-radius:5px; cursor:pointer;">
+                            🗑️
+                        </button>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
 
-            # Checkbox pour suppression groupée
-            selected.append(st.checkbox("Sélectionner", key=f"check_{i}"))
-
-        # Bouton pour suppression groupée
-        if any(selected):
-            indices_to_delete = [i for i, checked in enumerate(selected) if checked]
-            if st.button("🗑️ Supprimer la sélection"):
-                for index in sorted(indices_to_delete, reverse=True):
+        # Suppression individuelle sécurisée
+        query_params = st.query_params
+        if "delete_match" in query_params:
+            try:
+                index = int(query_params["delete_match"])
+                if 0 <= index < len(st.session_state.matchs):
                     del st.session_state.matchs[index]
-                st.success(f"{len(indices_to_delete)} match(s) supprimé(s)")
-                st.rerun()
-
-        # Suppression unique sécurisée
-        if st.session_state.just_deleted and st.session_state.match_to_delete is not None:
-            del st.session_state.matchs[st.session_state.match_to_delete]
-            st.session_state.match_to_delete = None
-            st.session_state.just_deleted = False
-            st.rerun()
+                    st.rerun()
+            except:
+                pass
 
     else:
         st.info("Aucun match enregistré.")
