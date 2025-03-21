@@ -154,4 +154,31 @@ with tab2:
         selected_to_delete = []
 
         for i, match in enumerate(st.session_state.matchs):
-            j1, j2 = match["jou
+            j1, j2 = match["joueur1"], match["joueur2"]
+            key = tuple(sorted([j1, j2]))
+            rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
+
+            col1, col2, col3 = st.columns([7, 2, 1])
+
+            with col1:
+                st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
+                st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
+
+            with col2:
+                if st.button("🗑️", key=f"del_{i}"):
+                    del st.session_state.matchs[i]
+                    st.rerun()
+
+            with col3:
+                if st.checkbox(" ", key=f"check_{i}"):
+                    selected_to_delete.append(i)
+
+        if selected_to_delete:
+            if st.button("🗑️ Supprimer la sélection"):
+                for index in sorted(selected_to_delete, reverse=True):
+                    del st.session_state.matchs[index]
+                st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
+                st.rerun()
+
+    else:
+        st.info("Aucun match enregistré.")
