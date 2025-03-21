@@ -144,10 +144,18 @@ with tab1:
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
 
                 # 🔄 Réinitialisation des champs après l'enregistrement
-                for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
-                    st.session_state[key] = ""
+                st.session_state.update({
+                    "text_joueur1": "",
+                    "select_joueur1": "Sélectionner",
+                    "text_joueur2": "",
+                    "select_joueur2": "Sélectionner",
+                    "set1": "",
+                    "set2": "",
+                    "set3": ""
+                })
 
                 st.rerun()
+
 
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
