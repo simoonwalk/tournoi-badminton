@@ -150,6 +150,7 @@ with tab2:
     if st.session_state.matchs:
         matches = st.session_state.matchs
         rencontre_compteur = {}
+        selected_to_delete = []  # Liste des matchs à supprimer en masse
 
         for i, match in enumerate(matches):
             j1 = match["joueur1"]
@@ -167,40 +168,40 @@ with tab2:
             bg_color = "#222" if i % 2 == 0 else "#333"
             text_color = "#ddd"
 
-            # Boîtage en Dark Mode
-            st.markdown(
-                f"""
-                <div style="background-color:{bg_color}; padding: 12px; border-radius: 8px; margin-bottom: 8px;
-                            border: 1px solid #444; color: {text_color}; display: flex; 
-                            justify-content: space-between; align-items: center;">
-                    <div>
+            # Affichage sous forme de boîtes claires et stylées
+            col1, col2, col3 = st.columns([7, 2, 1])
+
+            with col1:
+                st.markdown(
+                    f"""
+                    <div style="background-color:{bg_color}; padding: 12px; border-radius: 8px; 
+                                border: 1px solid #444; color: {text_color};">
                         <b style="color:#fff;">{j1}</b> vs <b style="color:#fff;">{j2}</b> 
                         — {num_rencontre}<sup>e</sup> rencontre<br>
                         <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
                         — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
                     </div>
-                    <div>
-                        <button onClick="window.location.href='?delete_match={i}'"
-                                style="background-color:#ff4d4d; color:white; border:none; 
-                                padding:6px 10px; border-radius:5px; cursor:pointer;">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+                    """,
+                    unsafe_allow_html=True
+                )
 
-        # Suppression individuelle sécurisée
-        query_params = st.query_params
-        if "delete_match" in query_params:
-            try:
-                index = int(query_params["delete_match"])
-                if 0 <= index < len(st.session_state.matchs):
-                    del st.session_state.matchs[index]
+            with col2:
+                if st.button("🗑️", key=f"del_{i}"):
+                    del st.session_state.matchs[i]
                     st.rerun()
-            except:
-                pass
+
+            with col3:
+                # Ajout de la case à cocher pour suppression groupée
+                if st.checkbox(" ", key=f"check_{i}"):
+                    selected_to_delete.append(i)
+
+        # Suppression groupée
+        if selected_to_delete:
+            if st.button("🗑️ Supprimer la sélection"):
+                for index in sorted(selected_to_delete, reverse=True):
+                    del st.session_state.matchs[index]
+                st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
+                st.rerun()
 
     else:
         st.info("Aucun match enregistré.")
