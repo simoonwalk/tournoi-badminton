@@ -2,9 +2,11 @@ import streamlit as st
 import pandas as pd
 import re
 
-# Suppresion des matchs
+# Initialisation des variables de suppression
 if 'match_to_delete' not in st.session_state:
     st.session_state.match_to_delete = None
+if 'just_deleted' not in st.session_state:
+    st.session_state.just_deleted = False
 
 # Initialisation des données
 if 'matchs' not in st.session_state:
@@ -92,8 +94,6 @@ st.title("🏸 Gestion de Tournoi de Badminton")
 st.header("1. Enregistrement d'un match")
 
 players = get_all_players()
-# Suggestions basées sur les joueurs connus
-players = get_all_players()
 
 joueur1 = st.text_input("Joueur 1", placeholder="Nom du joueur 1")
 if joueur1 and players:
@@ -145,17 +145,20 @@ else:
 st.header("3. Historique des matchs")
 
 if st.session_state.matchs:
-   for i, match in enumerate(st.session_state.matchs):
-    with st.expander(f"{match['joueur1']} vs {match['joueur2']}"):
-        st.write("**Scores :**", ", ".join(match['scores']))
-        st.write("**Vainqueur :**", match['vainqueur'])
-        if st.button("🗑️ Supprimer ce match", key=f"del_{i}"):
-            st.session_state.match_to_delete = i
+    for i, match in enumerate(st.session_state.matchs):
+        with st.expander(f"{match['joueur1']} vs {match['joueur2']}"):
+            st.write("**Scores :**", ", ".join(match['scores']))
+            st.write("**Vainqueur :**", match['vainqueur'])
+            if st.button("🗑️ Supprimer ce match", key=f"del_{i}"):
+                st.session_state.match_to_delete = i
+                st.session_state.just_deleted = True
+                break  # On sort de la boucle
 
-# Suppression en dehors de la boucle
-if st.session_state.match_to_delete is not None:
-    st.session_state.matchs.pop(st.session_state.match_to_delete)
-    st.session_state.match_to_delete = None
-    st.experimental_rerun()
+    # Suppression après la boucle
+    if st.session_state.just_deleted and st.session_state.match_to_delete is not None:
+        del st.session_state.matchs[st.session_state.match_to_delete]
+        st.session_state.match_to_delete = None
+        st.session_state.just_deleted = False
+        st.rerun()
 else:
     st.info("Aucun match enregistré.")
