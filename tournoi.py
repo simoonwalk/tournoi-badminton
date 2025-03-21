@@ -2,21 +2,20 @@ import streamlit as st
 import pandas as pd
 import re
 
-# Initialisation des variables de suppression et des champs de saisie
-if 'matchs' not in st.session_state:
-    st.session_state.matchs = []
-
+# Initialisation des variables de suppression
 if 'match_to_delete' not in st.session_state:
     st.session_state.match_to_delete = None
 if 'just_deleted' not in st.session_state:
     st.session_state.just_deleted = False
 
-# Vérifier si le formulaire doit être réinitialisé via les paramètres de l'URL
-if "reset_form" in st.experimental_get_query_params():
-    for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
+# Initialisation des données
+if 'matchs' not in st.session_state:
+    st.session_state.matchs = []
+
+# Initialisation des champs pour la réinitialisation après enregistrement
+for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
+    if key not in st.session_state:
         st.session_state[key] = ""
-    # Supprimer le paramètre reset_form pour éviter une réinitialisation en boucle
-    st.experimental_set_query_params()
 
 # Fonction pour extraire les joueurs existants
 def get_all_players():
@@ -26,24 +25,16 @@ def get_all_players():
         players.add(match['joueur2'])
     return sorted(players)
 
-# Fonction pour créer un champ hybride (saisie libre + liste déroulante)
+# Fonction pour créer un champ de saisie hybride (texte + liste déroulante)
 def joueur_input(label, key):
     players = get_all_players()
-    
-    # Sécuriser la valeur par défaut dans la liste déroulante
-    default_value = st.session_state.get(f"select_{key}", "Sélectionner")
-    if default_value not in ["Sélectionner"] + players:
-        default_value = "Sélectionner"
-
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        joueur = st.text_input(label, value=st.session_state.get(f"text_{key}", ""), key=f"text_{key}")
+        joueur = st.text_input(label, value=st.session_state[f"text_{key}"], key=f"text_{key}")
 
     with col2:
-        selection = st.selectbox(" ", ["Sélectionner"] + players, 
-                                 index=(["Sélectionner"] + players).index(default_value), 
-                                 key=f"select_{key}")
+        selection = st.selectbox(" ", ["Sélectionner"] + players, index=0, key=f"select_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -127,11 +118,11 @@ with tab1:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
+        set1 = st.text_input("Set 1 (ex: 21-15)", value=st.session_state["set1"], key="set1")
     with col2:
-        set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
+        set2 = st.text_input("Set 2 (ex: 19-21)", value=st.session_state["set2"], key="set2")
     with col3:
-        set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
+        set3 = st.text_input("Set 3 (ex: 21-19)", value=st.session_state["set3"], key="set3")
 
     if st.button("✅ Enregistrer le match"):
         sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
@@ -146,9 +137,12 @@ with tab1:
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
 
-                # 🔄 Réinitialisation via l'URL pour éviter les erreurs Streamlit
-                st.experimental_set_query_params(reset_form="true")
+                # 🔄 Réinitialisation des champs après l'enregistrement
+                for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
+                    st.session_state[key] = ""
+
                 st.rerun()
+
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
