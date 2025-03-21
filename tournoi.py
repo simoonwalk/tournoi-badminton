@@ -152,9 +152,6 @@ with tab2:
         selected = []
         rencontre_compteur = {}
 
-        # Titre de colonne
-        st.markdown("### 📋 Résumé des matchs enregistrés")
-
         for i, match in enumerate(matches):
             j1 = match["joueur1"]
             j2 = match["joueur2"]
@@ -167,29 +164,27 @@ with tab2:
 
             num_rencontre = rencontre_compteur[key]
 
-            # Définir une couleur de fond alternée
-            bg_color = "#f9f9f9" if i % 2 == 0 else "#ffffff"
+            # Alterner la couleur des lignes
+            bg_color = "#f5f5f5" if i % 2 == 0 else "#ffffff"
+            
+            # Affichage du match avec style simple et clair
             st.markdown(
                 f"""
-                <div style="background-color:{bg_color}; padding: 10px; border-radius: 8px; margin-bottom: 5px; display:flex; align-items:center; justify-content: space-between;">
-                    <div>
-                        <b>{j1}</b> vs <b>{j2}</b> — {num_rencontre}<sup>e</sup> rencontre<br>
-                        <small>Scores : {', '.join(match['scores'])} — <b>Vainqueur : {match['vainqueur']}</b></small>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <form action="?del={i}" method="post">
-                            <button name="suppr_unique" style="background-color:#ff4d4d; color:white; border:none; padding:6px 10px; border-radius:5px; cursor:pointer;">🗑️</button>
-                        </form>
-                        <input type="checkbox" name="selected_{i}" id="check_{i}" style="transform:scale(1.2);" />
+                <div style="background-color:{bg_color}; padding: 8px; border-radius: 5px; margin-bottom: 5px;">
+                    <b>{j1}</b> vs <b>{j2}</b> — {num_rencontre}<sup>e</sup> rencontre<br>
+                    <small>Scores : {', '.join(match['scores'])} — <b>Vainqueur : {match['vainqueur']}</b></small>
+                    <div style="text-align:right;">
+                        <button onclick="window.location.reload()" style="background-color:#ff4d4d; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">🗑️ Supprimer</button>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-            # Pour suppression groupée (via Streamlit)
-            selected.append(st.checkbox("Sélectionner ce match", key=f"check_{i}", label_visibility="collapsed"))
 
-        # Bouton de suppression groupée
+            # Checkbox pour suppression groupée
+            selected.append(st.checkbox("Sélectionner", key=f"check_{i}"))
+
+        # Bouton pour suppression groupée
         if any(selected):
             indices_to_delete = [i for i, checked in enumerate(selected) if checked]
             if st.button("🗑️ Supprimer la sélection"):
@@ -198,22 +193,13 @@ with tab2:
                 st.success(f"{len(indices_to_delete)} match(s) supprimé(s)")
                 st.rerun()
 
-        # Suppression individuelle sécurisée
+        # Suppression individuelle
         if st.session_state.just_deleted and st.session_state.match_to_delete is not None:
             del st.session_state.matchs[st.session_state.match_to_delete]
             st.session_state.match_to_delete = None
             st.session_state.just_deleted = False
             st.rerun()
 
-        # Vérifie si un bouton suppression unique a été cliqué via paramètre d'URL
-        if "del" in st.query_params:
-            try:
-                index = int(st.query_params["del"])
-                if 0 <= index < len(st.session_state.matchs):
-                    del st.session_state.matchs[index]
-                    st.rerun()
-            except:
-                pass
-
     else:
         st.info("Aucun match enregistré.")
+
