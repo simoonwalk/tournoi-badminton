@@ -88,8 +88,20 @@ st.title("🏸 Gestion de Tournoi de Badminton")
 st.header("1. Enregistrement d'un match")
 
 players = get_all_players()
-joueur1 = st.selectbox("Joueur 1", options=players + [""], index=len(players))
-joueur2 = st.selectbox("Joueur 2", options=players + [""], index=len(players))
+# Suggestions basées sur les joueurs connus
+players = get_all_players()
+
+joueur1 = st.text_input("Joueur 1", placeholder="Nom du joueur 1")
+if joueur1 and players:
+    suggestions1 = [p for p in players if joueur1.lower() in p.lower() and p.lower() != joueur1.lower()]
+    if suggestions1:
+        st.caption(f"Suggestions : {', '.join(suggestions1)}")
+
+joueur2 = st.text_input("Joueur 2", placeholder="Nom du joueur 2")
+if joueur2 and players:
+    suggestions2 = [p for p in players if joueur2.lower() in p.lower() and p.lower() != joueur2.lower()]
+    if suggestions2:
+        st.caption(f"Suggestions : {', '.join(suggestions2)}")
 
 col1, col2, col3 = st.columns(3)
 with col1:
