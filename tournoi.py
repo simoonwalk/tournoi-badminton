@@ -37,7 +37,7 @@ def calculer_classement():
                     'Nom du joueur': joueur,
                     'Points de victoire': 0,
                     'Matchs joués': 0,
-                    'Jeux marqués': 0
+                    'Points totaux': 0
                 }
 
         joueurs[j1]['Matchs joués'] += 1
@@ -45,8 +45,8 @@ def calculer_classement():
 
         for s in scores:
             score_j1, score_j2 = map(int, s.split('-'))
-            joueurs[j1]['Jeux marqués'] += score_j1
-            joueurs[j2]['Jeux marqués'] += score_j2
+            joueurs[j1]['Points totaux'] += score_j1
+            joueurs[j2]['Points totaux'] += score_j2
 
         perdant = j2 if gagnant == j1 else j1
 
