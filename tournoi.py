@@ -164,41 +164,38 @@ with tab2:
 
             num_rencontre = rencontre_compteur[key]
 
-            # Alternance de couleurs pour un rendu plus propre
-            bg_color = "#222" if i % 2 == 0 else "#2b2b2b"
+            # Alterner la couleur de fond pour le Dark Mode
+            bg_color = "#222" if i % 2 == 0 else "#333"
             text_color = "#ddd"
 
-            # Boîte complète avec padding et bordure pour séparer les matchs
-            st.markdown(
-                f"""
-                <div style="background-color:{bg_color}; padding: 15px; 
-                            border-radius: 10px; border: 1px solid #444; 
-                            color: {text_color}; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <b style="color:#fff;">{j1}</b> vs <b style="color:#fff;">{j2}</b> 
-                            — {num_rencontre}<sup>e</sup> rencontre<br>
-                            <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
-                            — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
-                        </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button onClick="window.location.href='?delete_match={i}'"
-                                    style="background-color:#ff4d4d; color:white; border:none; 
-                                    padding:8px 12px; border-radius:6px; cursor:pointer;">
-                                🗑️
-                            </button>
-                        </div>
+            # Affichage sous forme de boîtes claires et stylées
+            col1, col2, col3 = st.columns([7, 2, 1])
+
+            with col1:
+                st.markdown(
+                    f"""
+                    <div style="background-color:{bg_color}; padding: 12px; border-radius: 8px; 
+                                border: 1px solid #444; color: {text_color};">
+                        <b style="color:#fff;">{j1}</b> vs <b style="color:#fff;">{j2}</b> 
+                        — {num_rencontre}<sup>e</sup> rencontre<br>
+                        <small style="color:#bbb;">Scores : {', '.join(match['scores'])} 
+                        — <b style="color:#fff;">Vainqueur : {match['vainqueur']}</b></small>
                     </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+                    """,
+                    unsafe_allow_html=True
+                )
 
-            # Ajout d'une case à cocher pour suppression groupée
-            if st.checkbox("Sélectionner", key=f"check_{i}"):
-                selected_to_delete.append(i)
+            with col2:
+                if st.button("🗑️", key=f"del_{i}"):
+                    del st.session_state.matchs[i]
+                    st.rerun()
 
-        # Bouton pour suppression groupée
+            with col3:
+                # Ajout de la case à cocher pour suppression groupée
+                if st.checkbox(" ", key=f"check_{i}"):
+                    selected_to_delete.append(i)
+
+        # Suppression groupée
         if selected_to_delete:
             if st.button("🗑️ Supprimer la sélection"):
                 for index in sorted(selected_to_delete, reverse=True):
