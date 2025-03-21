@@ -12,6 +12,11 @@ if 'just_deleted' not in st.session_state:
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
 
+# Initialisation des champs pour la réinitialisation après enregistrement
+for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
+    if key not in st.session_state:
+        st.session_state[key] = ""
+
 # Fonction pour extraire les joueurs existants
 def get_all_players():
     players = set()
@@ -26,10 +31,10 @@ def joueur_input(label, key):
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        joueur = st.text_input(label, key=f"text_{key}")
+        joueur = st.text_input(label, value=st.session_state[f"text_{key}"], key=f"text_{key}")
 
     with col2:
-        selection = st.selectbox(" ", ["Sélectionner"] + players, key=f"select_{key}")
+        selection = st.selectbox(" ", ["Sélectionner"] + players, index=0, key=f"select_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -60,8 +65,6 @@ def calculer_classement():
             score_j1, score_j2 = map(int, s.split('-'))
             joueurs[j1]['Points totaux'] += score_j1
             joueurs[j2]['Points totaux'] += score_j2
-
-        perdant = j2 if gagnant == j1 else j1
 
         key = tuple(sorted([j1, j2]))
         if key not in victoires:
@@ -115,11 +118,11 @@ with tab1:
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
+        set1 = st.text_input("Set 1 (ex: 21-15)", value=st.session_state["set1"], key="set1")
     with col2:
-        set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
+        set2 = st.text_input("Set 2 (ex: 19-21)", value=st.session_state["set2"], key="set2")
     with col3:
-        set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
+        set3 = st.text_input("Set 3 (ex: 21-19)", value=st.session_state["set3"], key="set3")
 
     if st.button("✅ Enregistrer le match"):
         sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
@@ -133,6 +136,13 @@ with tab1:
                     'vainqueur': vainqueur
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
+
+                # 🔄 Réinitialisation des champs après l'enregistrement
+                for key in ["text_joueur1", "select_joueur1", "text_joueur2", "select_joueur2", "set1", "set2", "set3"]:
+                    st.session_state[key] = ""
+
+                st.rerun()
+
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
@@ -150,19 +160,15 @@ with tab2:
     st.subheader("📜 Historique des matchs")
 
     if st.session_state.matchs:
-        rencontre_compteur = {}
         selected_to_delete = []
 
         for i, match in enumerate(st.session_state.matchs):
             j1, j2 = match["joueur1"], match["joueur2"]
-            key = tuple(sorted([j1, j2]))
-            rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
 
             col1, col2, col3 = st.columns([7, 2, 1])
 
             with col1:
-                st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
-                st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
+                st.markdown(f"**{j1} vs {j2}** — Scores : {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
 
             with col2:
                 if st.button("🗑️", key=f"del_{i}"):
