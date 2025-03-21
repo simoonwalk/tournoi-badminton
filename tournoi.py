@@ -146,20 +146,59 @@ with tab1:
 # --- Onglet 2 : Historique des matchs ---
 with tab2:
     st.subheader("Historique des matchs")
+
     if st.session_state.matchs:
-        for i, match in enumerate(st.session_state.matchs):
-            with st.expander(f"{match['joueur1']} vs {match['joueur2']}"):
-                st.write("**Scores :**", ", ".join(match['scores']))
-                st.write("**Vainqueur :**", match['vainqueur'])
-                if st.button("🗑️ Supprimer ce match", key=f"del_{i}"):
+        matches = st.session_state.matchs
+
+        # Pour gestion des suppressions groupées
+        selected = []
+
+        # Dictionnaire pour compter les rencontres entre deux joueurs
+        rencontre_compteur = {}
+
+        for i, match in enumerate(matches):
+            j1 = match["joueur1"]
+            j2 = match["joueur2"]
+            key = tuple(sorted([j1, j2]))
+
+            if key not in rencontre_compteur:
+                rencontre_compteur[key] = 1
+            else:
+                rencontre_compteur[key] += 1
+
+            num_rencontre = rencontre_compteur[key]
+
+            col1, col2, col3, col4 = st.columns([4, 3, 3, 1])
+            with col1:
+                st.markdown(f"**{j1} vs {j2}** — *{num_rencontre}ᵉ rencontre*")
+            with col2:
+                st.markdown("**Scores :** " + ", ".join(match["scores"]))
+            with col3:
+                st.markdown(f"**Vainqueur :** {match['vainqueur']}")
+            with col4:
+                if st.button("🗑️", key=f"del_{i}"):
                     st.session_state.match_to_delete = i
                     st.session_state.just_deleted = True
-                    break
+                    break  # Sortir de la boucle pour éviter conflit state
 
+            # Checkbox pour suppression groupée
+            selected.append(st.checkbox("Sélectionner", key=f"check_{i}"))
+
+        # Bouton pour supprimer en masse
+        if any(selected):
+            indices_to_delete = [i for i, checked in enumerate(selected) if checked]
+            if st.button("🗑️ Supprimer la sélection"):
+                for index in sorted(indices_to_delete, reverse=True):
+                    del st.session_state.matchs[index]
+                st.success(f"{len(indices_to_delete)} match(s) supprimé(s)")
+                st.rerun()
+
+        # Suppression unique en fin de boucle
         if st.session_state.just_deleted and st.session_state.match_to_delete is not None:
             del st.session_state.matchs[st.session_state.match_to_delete]
             st.session_state.match_to_delete = None
             st.session_state.just_deleted = False
             st.rerun()
+
     else:
         st.info("Aucun match enregistré.")
