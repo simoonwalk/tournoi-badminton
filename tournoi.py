@@ -12,6 +12,21 @@ if 'just_deleted' not in st.session_state:
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
 
+# Initialisation des champs de saisie
+for key in ["text_joueur1", "text_joueur2", "select_joueur1", "select_joueur2", "set1", "set2", "set3"]:
+    if key not in st.session_state:
+        st.session_state[key] = ""
+
+# Fonction pour reset les champs après enregistrement
+def reset_fields():
+    st.session_state["text_joueur1"] = ""
+    st.session_state["text_joueur2"] = ""
+    st.session_state["select_joueur1"] = "Sélectionner"
+    st.session_state["select_joueur2"] = "Sélectionner"
+    st.session_state["set1"] = ""
+    st.session_state["set2"] = ""
+    st.session_state["set3"] = ""
+
 # Fonction pour extraire les joueurs existants
 def get_all_players():
     players = set()
@@ -26,10 +41,10 @@ def joueur_input(label, key):
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        joueur = st.text_input(label, key=f"text_{key}")
+        joueur = st.text_input(label, value=st.session_state[f"text_{key}"], key=f"text_{key}")
 
     with col2:
-        selection = st.selectbox(" ", ["Sélectionner"] + players, key=f"select_{key}")
+        selection = st.selectbox(" ", ["Sélectionner"] + players, index=(["Sélectionner"] + players).index(st.session_state[f"select_{key}"]) if st.session_state[f"select_{key}"] in players else 0, key=f"select_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -87,11 +102,11 @@ def calculer_classement():
     classement.insert(0, "Rang", [medal(i) for i in classement.index])
     return classement
 
-# 🏅 Fonctions pour afficher des médailles podium
+# Médailles podium
 def medal(rank):
     return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
 
-# ✅ Correction : Fonction déterminant le vainqueur
+# Correction fonction gagnant
 def determiner_vainqueur(sets, joueur1, joueur2):
     j1, j2 = 0, 0
     for s in sets:
@@ -142,6 +157,7 @@ with tab1:
                     'vainqueur': vainqueur
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
+                reset_fields()
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
