@@ -2,36 +2,23 @@ import streamlit as st
 import pandas as pd
 import re
 
-# --- Initialisation des variables de session ---
-init_state = {
-    "text_joueur1": "",
-    "text_joueur2": "",
-    "select_joueur1": "Sélectionner",
-    "select_joueur2": "Sélectionner",
-    "set1": "",
-    "set2": "",
-    "set3": ""
-}
-
-for key, value in init_state.items():
-    if key not in st.session_state:
-        st.session_state[key] = value
-
-if 'matchs' not in st.session_state:
-    st.session_state.matchs = []
-
-if 'reset_pending' not in st.session_state:
+# --- Nettoyage des champs au prochain affichage si reset_pending ---
+if "reset_pending" not in st.session_state:
     st.session_state.reset_pending = False
 
-# --- Fonction de réinitialisation des champs ---
-def reset_fields():
-    for key in init_state:
+if st.session_state.reset_pending:
+    for key in [
+        "text_joueur1", "text_joueur2",
+        "select_joueur1", "select_joueur2",
+        "set1", "set2", "set3"
+    ]:
         if key in st.session_state:
             del st.session_state[key]
     st.session_state.reset_pending = False
 
-if st.session_state.reset_pending:
-    reset_fields()
+# --- Initialisation ---
+if 'matchs' not in st.session_state:
+    st.session_state.matchs = []
 
 # --- Extraction des joueurs existants ---
 def get_all_players():
@@ -50,7 +37,7 @@ def joueur_input(label, key):
     with col1:
         selection = st.selectbox(" ", options, key=f"select_{key}")
     with col2:
-        joueur = st.text_input(label, value=st.session_state.get(f"text_{key}", ""), key=f"text_{key}")
+        joueur = st.text_input(label, key=f"text_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -126,7 +113,7 @@ def determiner_vainqueur(sets, joueur1, joueur2):
         return None
     return joueur1 if j1 > j2 else joueur2
 
-# --- INTERFACE PRINCIPALE ---
+# --- INTERFACE ---
 st.title("🏸 Gestion de Tournoi de Badminton")
 
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
