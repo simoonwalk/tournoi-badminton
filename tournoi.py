@@ -43,13 +43,24 @@ def joueur_input(label, key):
 
 # --- Saisie des scores set par set ---
 def set_input(set_num, joueur1, joueur2):
+    st.markdown(f"### 🏓 Set {set_num}")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"**{joueur1 or 'Joueur 1'}**")
-        s1 = st.number_input(f"Set {set_num} - {joueur1 or 'Joueur 1'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j1", label_visibility="collapsed")
+        s1 = st.number_input(
+            f"Set {set_num} - {joueur1 or 'Joueur 1'}",
+            min_value=0, max_value=30, step=1,
+            key=f"set{set_num}_j1",
+            label_visibility="collapsed"
+        )
     with col2:
         st.markdown(f"**{joueur2 or 'Joueur 2'}**")
-        s2 = st.number_input(f"Set {set_num} - {joueur2 or 'Joueur 2'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j2", label_visibility="collapsed")
+        s2 = st.number_input(
+            f"Set {set_num} - {joueur2 or 'Joueur 2'}",
+            min_value=0, max_value=30, step=1,
+            key=f"set{set_num}_j2",
+            label_visibility="collapsed"
+        )
     return f"{s1}-{s2}" if (s1 != 0 or s2 != 0) else ""
 
 # --- Calcul du classement ---
