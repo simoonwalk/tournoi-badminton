@@ -2,6 +2,38 @@ import streamlit as st
 import pandas as pd
 import re
 
+# --- Style CSS personnalisé ---
+st.markdown("""
+    <style>
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .stMarkdown, .stTextInput, .stNumberInput, .stSelectbox {
+        margin-bottom: 0.25rem !important;
+    }
+
+    html, body, [class*="st-"] {
+        font-size: 15px;
+    }
+
+    h1, h2, h3 {
+        font-size: 1.3em !important;
+        margin-bottom: 0.2em;
+    }
+
+    button[kind="primary"] {
+        padding: 0.3rem 1rem;
+        font-size: 14px;
+    }
+
+    .stColumns {
+        gap: 0.5rem !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- Initialisation ---
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
@@ -22,7 +54,7 @@ def joueur_input(label, key):
     players = get_all_players()
     options = ["Sélectionner"] + players
 
-    col1, col2 = st.columns([1, 3])
+    col1, col2 = st.columns([1, 2.5])
     with col1:
         selection = st.selectbox(
             " ",
@@ -43,7 +75,7 @@ def joueur_input(label, key):
 
 # --- Saisie des scores set par set ---
 def set_input(set_num, joueur1, joueur2):
-    st.markdown(f"### 🏸 Set {set_num}")
+    st.markdown(f"**🏸 Set {set_num}**")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"**{joueur1 or 'Joueur 1'}**")
@@ -116,7 +148,7 @@ def calculer_classement():
     return classement
 
 def medal(rank):
-    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵈ")
+    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
 
 # --- Déterminer le vainqueur ---
 def determiner_vainqueur(sets, joueur1, joueur2):
