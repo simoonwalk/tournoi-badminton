@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import re
-from collections import defaultdict
-from datetime import datetime
 
 # --- Initialisation ---
 if 'matchs' not in st.session_state:
@@ -11,7 +9,7 @@ if 'matchs' not in st.session_state:
 if 'reset_pending' not in st.session_state:
     st.session_state.reset_pending = False
 
-# --- Récupération des joueurs existants ---
+# --- Extraction des joueurs existants ---
 def get_all_players():
     players = set()
     for match in st.session_state.matchs:
@@ -19,7 +17,7 @@ def get_all_players():
         players.add(match['joueur2'])
     return sorted(players)
 
-# --- Input joueur (compact) ---
+# --- Champ de saisie hybride (dropdown + texte) ---
 def joueur_input(label, key):
     players = get_all_players()
     options = ["Sélectionner"] + players
@@ -27,42 +25,47 @@ def joueur_input(label, key):
     col1, col2 = st.columns([1, 3])
     with col1:
         selection = st.selectbox(
-            "", options,
+            " ",
+            options,
             key=f"select_{key}",
             index=0 if st.session_state.reset_pending else options.index(
                 st.session_state.get(f"select_{key}", "Sélectionner")
-            ) if st.session_state.get(f"select_{key}") in options else 0,
-            label_visibility="collapsed"
+            ) if st.session_state.get(f"select_{key}") in options else 0
         )
     with col2:
         joueur = st.text_input(
-            label, key=f"text_{key}",
+            label,
+            key=f"text_{key}",
             value="" if st.session_state.reset_pending else st.session_state.get(f"text_{key}", "")
         )
 
     return selection if selection != "Sélectionner" else joueur
 
-# --- Input d’un set compact ---
+# --- Saisie des scores set par set ---
 def set_input(set_num, joueur1, joueur2):
-    st.markdown(f"<small><b>🏓 Set {set_num}</b></small>", unsafe_allow_html=True)
-    st.markdown("<div style='margin-bottom:-10px'></div>", unsafe_allow_html=True)
+    st.markdown(f"### 🏸 Set {set_num}")
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(f"<small>{joueur1 or 'Joueur 1'}</small>", unsafe_allow_html=True)
+        st.markdown(f"**{joueur1 or 'Joueur 1'}**")
         s1 = st.number_input(
-            "", min_value=0, max_value=30, step=1,
-            key=f"set{set_num}_j1", label_visibility="collapsed"
+            f"Set {set_num} - {joueur1 or 'Joueur 1'}",
+            min_value=0, max_value=30, step=1,
+            key=f"set{set_num}_j1",
+            label_visibility="collapsed"
         )
     with col2:
-        st.markdown(f"<small>{joueur2 or 'Joueur 2'}</small>", unsafe_allow_html=True)
+        st.markdown(f"**{joueur2 or 'Joueur 2'}**")
         s2 = st.number_input(
-            "", min_value=0, max_value=30, step=1,
-            key=f"set{set_num}_j2", label_visibility="collapsed"
+            f"Set {set_num} - {joueur2 or 'Joueur 2'}",
+            min_value=0, max_value=30, step=1,
+            key=f"set{set_num}_j2",
+            label_visibility="collapsed"
         )
     return f"{s1}-{s2}" if (s1 != 0 or s2 != 0) else ""
 
-# --- Classement ---
+# --- Calcul du classement ---
 def calculer_classement():
+    from collections import defaultdict
     joueurs = defaultdict(lambda: {
         'Nom du joueur': "",
         'Points de victoire': 0,
@@ -72,12 +75,14 @@ def calculer_classement():
     victoires = {}
 
     for match in st.session_state.matchs:
-        j1, j2 = match['joueur1'], match['joueur2']
+        j1 = match['joueur1']
+        j2 = match['joueur2']
         gagnant = match['vainqueur']
         scores = match['scores']
 
         joueurs[j1]['Nom du joueur'] = j1
         joueurs[j2]['Nom du joueur'] = j2
+
         joueurs[j1]['Matchs joués'] += 1
         joueurs[j2]['Matchs joués'] += 1
 
@@ -89,10 +94,16 @@ def calculer_classement():
         key = tuple(sorted([j1, j2]))
         if key not in victoires:
             victoires[key] = {j1: 0, j2: 0}
-        victoires[key][gagnant] += 1
 
+        victoires[key][gagnant] += 1
         nb_victoires = victoires[key][gagnant]
-        joueurs[gagnant]['Points de victoire'] += 5 if nb_victoires == 1 else 3 if nb_victoires == 2 else 1
+
+        if nb_victoires == 1:
+            joueurs[gagnant]['Points de victoire'] += 5
+        elif nb_victoires == 2:
+            joueurs[gagnant]['Points de victoire'] += 3
+        else:
+            joueurs[gagnant]['Points de victoire'] += 1
 
     classement = pd.DataFrame(joueurs.values())
     classement = classement.sort_values(
@@ -105,9 +116,9 @@ def calculer_classement():
     return classement
 
 def medal(rank):
-    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
+    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵈ")
 
-# --- Déterminer vainqueur ---
+# --- Déterminer le vainqueur ---
 def determiner_vainqueur(sets, joueur1, joueur2):
     j1, j2 = 0, 0
     for s in sets:
@@ -119,21 +130,24 @@ def determiner_vainqueur(sets, joueur1, joueur2):
                 j2 += 1
         except:
             continue
+
     if j1 == 0 and j2 == 0:
         return None
     return joueur1 if j1 > j2 else joueur2
 
 # --- INTERFACE ---
-st.markdown("<h1 style='font-size: 30px;'>🎈 Tournoi de Badminton</h1>", unsafe_allow_html=True)
-tab1, tab2 = st.tabs(["🎮 Tournoi", "📜 Historique"])
+st.title("🏸 Tournoi de Badminton")
 
-# --- Onglet 1 : Match + classement ---
+tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
+
+# --- Onglet 1 ---
 with tab1:
-    st.markdown("### 🎯 Enregistrement d'un match")
+    st.subheader("1. Enregistrement d'un match")
+
     joueur1 = joueur_input("Joueur 1", "joueur1")
     joueur2 = joueur_input("Joueur 2", "joueur2")
 
-    st.markdown("<div style='margin-top:-10px'></div>", unsafe_allow_html=True)
+    st.markdown("**🎯 Résultats des sets :**")
     set1 = set_input(1, joueur1, joueur2)
     set2 = set_input(2, joueur1, joueur2)
     set3 = set_input(3, joueur1, joueur2)
@@ -150,8 +164,7 @@ with tab1:
                     'joueur1': joueur1,
                     'joueur2': joueur2,
                     'scores': sets,
-                    'vainqueur': vainqueur,
-                    'date': datetime.now().strftime("%d/%m/%Y %H:%M")
+                    'vainqueur': vainqueur
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
                 st.session_state.reset_pending = True
@@ -161,16 +174,17 @@ with tab1:
         else:
             st.error("Veuillez saisir deux joueurs différents et au moins un set valide.")
 
-    st.markdown("### 🏆 Classement")
+    st.subheader("2. Classement des joueurs")
     if st.session_state.matchs:
         classement_df = calculer_classement()
-        st.dataframe(classement_df, use_container_width=True)
+        st.dataframe(classement_df)
     else:
         st.info("Aucun match enregistré pour le moment.")
 
-# --- Onglet 2 : Historique ---
+# --- Onglet 2 ---
 with tab2:
-    st.markdown("### 📜 Historique des matchs")
+    st.subheader("📜 Historique des matchs")
+
     if st.session_state.matchs:
         rencontre_compteur = {}
         selected_to_delete = []
@@ -181,10 +195,10 @@ with tab2:
             rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
 
             with st.container():
-                col1, col2, col3 = st.columns([6, 1.5, 0.5])
+                col1, col2, col3 = st.columns([7, 2, 1])
                 with col1:
-                    st.markdown(f"<small><b>{j1} vs {j2}</b> — {rencontre_compteur[key]}ᵉ rencontre</small>", unsafe_allow_html=True)
-                    st.markdown(f"<small>📅 {match.get('date', '')} | 🎯 Scores : {', '.join(match['scores'])} — 🏅 Vainqueur : {match['vainqueur']}</small>", unsafe_allow_html=True)
+                    st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
+                    st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
                 with col2:
                     if st.button("🗑️", key=f"del_{i}"):
                         del st.session_state.matchs[i]
