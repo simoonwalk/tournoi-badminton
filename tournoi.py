@@ -91,10 +91,6 @@ def calculer_classement():
 def medal(rank):
     return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
 
-# --- INTERFACE STREAMLIT ---
-st.title("🏸 Tournoi de Badminton")
-tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
-
 # --- Ton interface reste inchangée (suite de ton code précédent) ---
 # (le reste du code précédent Streamlit demeure identique ici)
 
