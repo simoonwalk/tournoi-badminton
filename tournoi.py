@@ -36,12 +36,10 @@ if 'reset_pending' not in st.session_state:
 def joueur_input(label, key):
     joueurs = list({match['joueur1'] for match in st.session_state.matchs} | {match['joueur2'] for match in st.session_state.matchs})
     options = ["Sélectionner"] + joueurs
-    if "Sélectionner" not in options:
-        options.insert(0, "Sélectionner")
 
     col1, col2 = st.columns([1, 2.5])
     with col1:
-        selection = st.selectbox(" ", options, key=f"select_{key}", index=0)
+        selection = st.selectbox(" ", options, key=f"select_{key}", index=0 if st.session_state.reset_pending else options.index(st.session_state.get(f"select_{key}", "Sélectionner")))
     with col2:
         joueur = st.text_input(label, key=f"text_{key}", value="" if st.session_state.reset_pending else st.session_state.get(f"text_{key}", ""))
 
