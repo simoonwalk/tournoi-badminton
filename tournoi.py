@@ -118,4 +118,73 @@ def medal(rank):
 st.title("🏸 Tournoi de Badminton")
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
 
-# Le reste de l'interface complète est ajouté ci-dessous, intégrant les appels à st.cache_data.clear() après chaque opération importante.
+with tab1:
+    st.subheader("1. Enregistrement d'un match")
+
+    joueur1 = joueur_input("Joueur 1", "joueur1")
+    joueur2 = joueur_input("Joueur 2", "joueur2")
+
+    st.markdown("**🎯 Résultats des sets :**")
+    set1 = set_input(1, joueur1, joueur2)
+    set2 = set_input(2, joueur1, joueur2)
+    set3 = set_input(3, joueur1, joueur2)
+
+    if st.button("✅ Enregistrer le match"):
+        sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
+        if joueur1 and joueur2 and joueur1 != joueur2 and sets:
+            vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
+            if vainqueur:
+                sauvegarder_match({
+                    'joueur1': joueur1,
+                    'joueur2': joueur2,
+                    'scores': sets,
+                    'vainqueur': vainqueur
+                })
+                st.cache_data.clear()
+                st.session_state.matchs = charger_matchs()
+                st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
+                st.session_state.reset_pending = True
+                st.rerun()
+            else:
+                st.error("Aucun joueur n’a gagné un set valide.")
+        else:
+            st.error("Veuillez saisir deux joueurs différents et au moins un set valide.")
+
+    st.subheader("2. Classement des joueurs")
+    if st.session_state.matchs:
+        classement_df = calculer_classement()
+        st.dataframe(classement_df)
+    else:
+        st.info("Aucun match enregistré pour le moment.")
+
+with tab2:
+    st.subheader("📜 Historique des matchs")
+
+    if st.session_state.matchs:
+        rencontre_compteur = {}
+        for match in st.session_state.matchs:
+            j1, j2 = match["joueur1"], match["joueur2"]
+            key = tuple(sorted([j1, j2]))
+            rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
+            scores = match['scores'] if isinstance(match['scores'], list) else json.loads(match['scores'])
+
+            with st.container():
+                col1, col2 = st.columns([8, 1])
+                with col1:
+                    st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
+                    st.markdown(f"**Scores :** {', '.join(scores)} — **Vainqueur : {match['vainqueur']}**")
+                with col2:
+                    if st.button("🗑️", key=f"del_{match['id']}"):
+                        supprimer_match(match['id'])
+                        st.cache_data.clear()
+                        st.session_state.matchs = charger_matchs()
+                        st.rerun()
+
+        if st.button("♻️ Réinitialiser tous les matchs"):
+            reinitialiser_matchs()
+            st.cache_data.clear()
+            st.session_state.matchs = []
+            st.success("Tous les matchs ont été réinitialisés.")
+            st.rerun()
+    else:
+        st.info("Aucun match enregistré.")
