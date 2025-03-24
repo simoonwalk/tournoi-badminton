@@ -2,32 +2,30 @@ import streamlit as st
 import pandas as pd
 import re
 
-# Initialisation des variables de suppression
-if 'match_to_delete' not in st.session_state:
-    st.session_state.match_to_delete = None
-if 'just_deleted' not in st.session_state:
-    st.session_state.just_deleted = False
+# --- Initialisation des variables de session ---
+init_state = {
+    "text_joueur1": "",
+    "text_joueur2": "",
+    "select_joueur1": "Sélectionner",
+    "select_joueur2": "Sélectionner",
+    "set1": "",
+    "set2": "",
+    "set3": ""
+}
 
-# Initialisation des données
+for key, value in init_state.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
 
-# Initialisation des champs de saisie
-for key in ["text_joueur1", "text_joueur2", "select_joueur1", "select_joueur2", "set1", "set2", "set3"]:
-    if key not in st.session_state:
-        st.session_state[key] = ""
-
-# Fonction pour reset les champs après enregistrement
+# --- Fonction de réinitialisation des champs ---
 def reset_fields():
-    st.session_state["text_joueur1"] = ""
-    st.session_state["text_joueur2"] = ""
-    st.session_state["select_joueur1"] = "Sélectionner"
-    st.session_state["select_joueur2"] = "Sélectionner"
-    st.session_state["set1"] = ""
-    st.session_state["set2"] = ""
-    st.session_state["set3"] = ""
+    for key in init_state:
+        st.session_state[key] = init_state[key]
 
-# Fonction pour extraire les joueurs existants
+# --- Extraction des joueurs existants ---
 def get_all_players():
     players = set()
     for match in st.session_state.matchs:
@@ -35,20 +33,20 @@ def get_all_players():
         players.add(match['joueur2'])
     return sorted(players)
 
-# Fonction pour créer un champ de saisie hybride (texte + liste déroulante)
+# --- Champ de saisie hybride (texte + liste) ---
 def joueur_input(label, key):
     players = get_all_players()
-    col1, col2 = st.columns([3, 1])
+    options = ["Sélectionner"] + players
 
+    col1, col2 = st.columns([3, 1])
     with col1:
         joueur = st.text_input(label, value=st.session_state[f"text_{key}"], key=f"text_{key}")
-
     with col2:
-        selection = st.selectbox(" ", ["Sélectionner"] + players, index=(["Sélectionner"] + players).index(st.session_state[f"select_{key}"]) if st.session_state[f"select_{key}"] in players else 0, key=f"select_{key}")
+        selection = st.selectbox(" ", options, key=f"select_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
-# Fonction pour calculer le classement
+# --- Fonction de calcul du classement ---
 def calculer_classement():
     joueurs = {}
     victoires = {}
@@ -98,15 +96,14 @@ def calculer_classement():
         ascending=[False, True, False]
     ).reset_index(drop=True)
 
-    classement.index += 1  # Pour commencer à 1
+    classement.index += 1
     classement.insert(0, "Rang", [medal(i) for i in classement.index])
     return classement
 
-# Médailles podium
 def medal(rank):
     return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
 
-# Correction fonction gagnant
+# --- Déterminer le vainqueur ---
 def determiner_vainqueur(sets, joueur1, joueur2):
     j1, j2 = 0, 0
     for s in sets:
@@ -123,12 +120,12 @@ def determiner_vainqueur(sets, joueur1, joueur2):
         return None
     return joueur1 if j1 > j2 else joueur2
 
-# ---- INTERFACE PRINCIPALE ----
+# --- INTERFACE ---
 st.title("🏸 Gestion de Tournoi de Badminton")
 
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
 
-# --- Onglet 1 : Enregistrement + Classement ---
+# --- Onglet 1 : Saisie + Classement ---
 with tab1:
     st.subheader("1. Enregistrement d'un match")
 
@@ -170,7 +167,7 @@ with tab1:
     else:
         st.info("Aucun match enregistré pour le moment.")
 
-# --- Onglet 2 : Historique des matchs ---
+# --- Onglet 2 : Historique ---
 with tab2:
     st.subheader("📜 Historique des matchs")
 
