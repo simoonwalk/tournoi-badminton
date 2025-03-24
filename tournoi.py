@@ -132,7 +132,7 @@ with tab1:
     set3 = set_input(3, joueur1, joueur2)
 
     if st.button("✅ Enregistrer le match"):
-        sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
+        sets = [s for s in [set1, set2, set3] if re.match(r'^\\d{1,2}-\\d{1,2}$', s)]
         if joueur1 and joueur2 and joueur1 != joueur2 and sets:
             vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
             if vainqueur:
@@ -151,6 +151,10 @@ with tab1:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
             st.error("Veuillez saisir deux joueurs différents et au moins un set valide.")
+
+    if st.session_state.reset_pending:
+        st.session_state.reset_pending = False
+        st.rerun()
 
     st.subheader("2. Classement des joueurs")
     if st.session_state.matchs:
