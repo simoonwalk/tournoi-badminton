@@ -47,6 +47,10 @@ st.markdown("""
     div:has(> a[href*="streamlit.io"]) {
         display: none !important;
     }
+    .block-container {
+    padding-top: 1rem;
+    padding-bottom: 5rem; /* <- Ajout ici */
+}
     </style>
 """, unsafe_allow_html=True)
 
