@@ -32,7 +32,7 @@ st.markdown("""
         gap: 0.5rem !important;
     }
     h1 {
-        padding-top:3em;
+        padding-top:3em!important;
     }
     </style>
 """, unsafe_allow_html=True)
