@@ -41,7 +41,7 @@ def joueur_input(label, key):
     with col1:
         selection = st.selectbox(" ", options, key=f"select_{key}", index=0 if st.session_state.reset_pending else None)
     with col2:
-        joueur = st.text_input(label, key=f"text_{key}", value="" if st.session_state.reset_pending else None)
+        joueur = st.text_input(label, key=f"text_{key}", value="" if st.session_state.reset_pending else st.session_state.get(f"text_{key}", ""))
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -50,10 +50,10 @@ def set_input(set_num, joueur1, joueur2):
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"**{joueur1 or 'Joueur 1'}**")
-        s1 = st.number_input(f"Set {set_num} - {joueur1 or 'Joueur 1'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j1", value=0 if st.session_state.reset_pending else None)
+        s1 = st.number_input(f"Set {set_num} - {joueur1 or 'Joueur 1'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j1", value=0 if st.session_state.reset_pending else st.session_state.get(f"set{set_num}_j1", 0))
     with col2:
         st.markdown(f"**{joueur2 or 'Joueur 2'}**")
-        s2 = st.number_input(f"Set {set_num} - {joueur2 or 'Joueur 2'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j2", value=0 if st.session_state.reset_pending else None)
+        s2 = st.number_input(f"Set {set_num} - {joueur2 or 'Joueur 2'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j2", value=0 if st.session_state.reset_pending else st.session_state.get(f"set{set_num}_j2", 0))
     return f"{s1}-{s2}" if (s1 != 0 or s2 != 0) else ""
 
 def determiner_vainqueur(sets, joueur1, joueur2):
