@@ -5,7 +5,7 @@ import re
 # --- Style CSS personnalisé ---
 st.markdown("""
     <style>
-        /* -------- Mise en page compacte et harmonisée -------- */
+    /* --- Mise en page compacte et stylisée --- */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 1rem;
@@ -33,17 +33,18 @@ st.markdown("""
         gap: 0.5rem !important;
     }
 
-    /* -------- Cacher les éléments Streamlit natifs -------- */
-    #MainMenu {
-        visibility: hidden;
+    /* --- Cacher tous les éléments natifs Streamlit --- */
+    #MainMenu { visibility: hidden; }
+    header { visibility: hidden; }
+
+    /* Masquer le footer (hébergé par Streamlit) */
+    footer, .st-emotion-cache-zq5wmm.ea3mdgi1 {
+        display: none !important;
     }
 
-    footer {
-        visibility: hidden;
-    }
-
-    header {
-        visibility: hidden;
+    /* Masquer tout texte contenant "streamlit" en bas de page (fallback extrême) */
+    [data-testid="stFooter"] {
+        display: none !important;
     }
     </style>
 """, unsafe_allow_html=True)
