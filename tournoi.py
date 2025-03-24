@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import re
+import time
 
 # --- Initialisation ---
 if 'matchs' not in st.session_state:
@@ -43,24 +44,41 @@ def joueur_input(label, key):
 
 # --- Saisie des scores set par set ---
 def set_input(set_num, joueur1, joueur2):
-    st.markdown(f"### 🏓 Set {set_num}")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown(f"**{joueur1 or 'Joueur 1'}**")
-        s1 = st.number_input(
-            f"Set {set_num} - {joueur1 or 'Joueur 1'}",
-            min_value=0, max_value=30, step=1,
-            key=f"set{set_num}_j1",
-            label_visibility="collapsed"
-        )
-    with col2:
-        st.markdown(f"**{joueur2 or 'Joueur 2'}**")
-        s2 = st.number_input(
-            f"Set {set_num} - {joueur2 or 'Joueur 2'}",
-            min_value=0, max_value=30, step=1,
-            key=f"set{set_num}_j2",
-            label_visibility="collapsed"
-        )
+    couleurs = ["#f0f9ff", "#e0f7fa", "#fce4ec"]
+    st.markdown(f"""
+        <div style='background-color:{couleurs[(set_num - 1) % len(couleurs)]}; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;'>
+            <h4 style='margin-bottom: 0.5rem;'>🏓 Set {set_num}</h4>
+            <div style='display: flex; justify-content: space-between;'>
+                <div style='width: 48%;'>
+                    <strong>{joueur1 or 'Joueur 1'}</strong><br>
+                    <input type='number' name='set{set_num}_j1' min='0' max='30' step='1' 
+                           style='width: 100%; padding: 0.5rem; border-radius: 0.25rem;' 
+                           value='{st.session_state.get(f"set{set_num}_j1", 0)}' 
+                           oninput='this.setAttribute("value", this.value)'>
+                </div>
+                <div style='width: 48%;'>
+                    <strong>{joueur2 or 'Joueur 2'}</strong><br>
+                    <input type='number' name='set{set_num}_j2' min='0' max='30' step='1' 
+                           style='width: 100%; padding: 0.5rem; border-radius: 0.25rem;' 
+                           value='{st.session_state.get(f"set{set_num}_j2", 0)}' 
+                           oninput='this.setAttribute("value", this.value)'>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    s1 = st.number_input(
+        f"Set {set_num} - {joueur1 or 'Joueur 1'}",
+        min_value=0, max_value=30, step=1,
+        key=f"set{set_num}_j1",
+        label_visibility="collapsed"
+    )
+    s2 = st.number_input(
+        f"Set {set_num} - {joueur2 or 'Joueur 2'}",
+        min_value=0, max_value=30, step=1,
+        key=f"set{set_num}_j2",
+        label_visibility="collapsed"
+    )
     return f"{s1}-{s2}" if (s1 != 0 or s2 != 0) else ""
 
 # --- Calcul du classement ---
@@ -138,6 +156,9 @@ def determiner_vainqueur(sets, joueur1, joueur2):
 # --- INTERFACE ---
 st.title("🎈 Gestion de Tournoi de Badminton")
 
+with st.spinner("Chargement de l'application..."):
+    time.sleep(0.5)
+
 tab1, tab2 = st.tabs(["🎈 Tournoi", "📜 Historique"])
 
 # --- Onglet 1 ---
@@ -166,7 +187,8 @@ with tab1:
                     'scores': sets,
                     'vainqueur': vainqueur
                 })
-                st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
+                with st.success(f"Match enregistré ! Vainqueur : {vainqueur}"):
+                    time.sleep(1)
                 st.session_state.reset_pending = True
                 st.rerun()
             else:
