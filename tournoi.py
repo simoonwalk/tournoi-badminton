@@ -2,23 +2,12 @@ import streamlit as st
 import pandas as pd
 import re
 
-# --- Nettoyage des champs au prochain affichage si reset_pending ---
-if "reset_pending" not in st.session_state:
-    st.session_state.reset_pending = False
-
-if st.session_state.reset_pending:
-    for key in [
-        "text_joueur1", "text_joueur2",
-        "select_joueur1", "select_joueur2",
-        "set1", "set2", "set3"
-    ]:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.session_state.reset_pending = False
-
 # --- Initialisation ---
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
+
+if 'reset_pending' not in st.session_state:
+    st.session_state.reset_pending = False
 
 # --- Extraction des joueurs existants ---
 def get_all_players():
@@ -35,9 +24,20 @@ def joueur_input(label, key):
 
     col1, col2 = st.columns([1, 3])
     with col1:
-        selection = st.selectbox(" ", options, key=f"select_{key}")
+        selection = st.selectbox(
+            " ",
+            options,
+            key=f"select_{key}",
+            index=0 if st.session_state.reset_pending else options.index(
+                st.session_state.get(f"select_{key}", "Sélectionner")
+            ) if st.session_state.get(f"select_{key}") in options else 0
+        )
     with col2:
-        joueur = st.text_input(label, key=f"text_{key}")
+        joueur = st.text_input(
+            label,
+            key=f"text_{key}",
+            value="" if st.session_state.reset_pending else st.session_state.get(f"text_{key}", "")
+        )
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -129,11 +129,14 @@ with tab1:
         st.markdown("**🎯 Résultats des sets :**")
         col1, col2, col3 = st.columns(3)
         with col1:
-            set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
+            set1 = st.text_input("Set 1 (ex: 21-15)", key="set1", value="" if st.session_state.reset_pending else st.session_state.get("set1", ""))
         with col2:
-            set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
+            set2 = st.text_input("Set 2 (ex: 19-21)", key="set2", value="" if st.session_state.reset_pending else st.session_state.get("set2", ""))
         with col3:
-            set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
+            set3 = st.text_input("Set 3 (ex: 21-19)", key="set3", value="" if st.session_state.reset_pending else st.session_state.get("set3", ""))
+
+    if st.session_state.reset_pending:
+        st.session_state.reset_pending = False
 
     if st.button("✅ Enregistrer le match"):
         sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
