@@ -70,18 +70,23 @@ def determiner_vainqueur(sets, joueur1, joueur2):
 def calculer_classement():
     joueurs = {}
     for match in st.session_state.matchs:
-        for joueur in [match['joueur1'], match['joueur2']]:
+        j1 = match['joueur1']
+        j2 = match['joueur2']
+        vainqueur = match['vainqueur']
+        scores = match['scores'] if isinstance(match['scores'], list) else eval(match['scores'])
+
+        for joueur in [j1, j2]:
             if joueur not in joueurs:
                 joueurs[joueur] = {'Nom': joueur, 'Points': 0, 'Matchs': 0, 'Total': 0}
 
-        joueurs[match['vainqueur']]['Points'] += 3
-        joueurs[match['joueur1']]['Matchs'] += 1
-        joueurs[match['joueur2']]['Matchs'] += 1
+        joueurs[vainqueur]['Points'] += 3
+        joueurs[j1]['Matchs'] += 1
+        joueurs[j2]['Matchs'] += 1
 
-        for set_score in match['scores']:
+        for set_score in scores:
             s1, s2 = map(int, set_score.split('-'))
-            joueurs[match['joueur1']]['Total'] += s1
-            joueurs[match['joueur2']]['Total'] += s2
+            joueurs[j1]['Total'] += s1
+            joueurs[j2]['Total'] += s2
 
     classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points', 'Total'], ascending=[False, False])
     classement.index += 1
@@ -136,12 +141,18 @@ with tab2:
     st.subheader("📜 Historique des matchs")
 
     if st.session_state.matchs:
+        rencontre_compteur = {}
         for match in st.session_state.matchs:
+            j1, j2 = match["joueur1"], match["joueur2"]
+            key = tuple(sorted([j1, j2]))
+            rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
+            scores = match['scores'] if isinstance(match['scores'], list) else eval(match['scores'])
+
             with st.container():
                 col1, col2 = st.columns([8, 1])
                 with col1:
-                    st.markdown(f"**{match['joueur1']} vs {match['joueur2']}** - Vainqueur : {match['vainqueur']}")
-                    st.markdown(f"**Scores :** {', '.join(match['scores'])}")
+                    st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
+                    st.markdown(f"**Scores :** {', '.join(scores)} — **Vainqueur : {match['vainqueur']}**")
                 with col2:
                     if st.button("🗑️", key=f"del_{match['id']}"):
                         supprimer_match(match['id'])
@@ -155,3 +166,4 @@ with tab2:
             st.rerun()
     else:
         st.info("Aucun match enregistré.")
+
