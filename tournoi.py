@@ -5,6 +5,7 @@ import re
 # --- Style CSS personnalisé ---
 st.markdown("""
     <style>
+        /* -------- Mise en page compacte et harmonisée -------- */
     .block-container {
         padding-top: 1rem;
         padding-bottom: 1rem;
@@ -31,8 +32,18 @@ st.markdown("""
     .stColumns {
         gap: 0.5rem !important;
     }
-    h1 {
-        padding-top:3em!important;
+
+    /* -------- Cacher les éléments Streamlit natifs -------- */
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    footer {
+        visibility: hidden;
+    }
+
+    header {
+        visibility: hidden;
     }
     </style>
 """, unsafe_allow_html=True)
