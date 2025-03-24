@@ -163,7 +163,7 @@ with tab1:
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
                 st.session_state.reset_pending = True
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
