@@ -17,7 +17,7 @@ def get_all_players():
         players.add(match['joueur2'])
     return sorted(players)
 
-# --- Champ de saisie hybride (dropdown à gauche, texte à droite) ---
+# --- Champ de saisie hybride (dropdown + texte) ---
 def joueur_input(label, key):
     players = get_all_players()
     options = ["Sélectionner"] + players
@@ -41,9 +41,26 @@ def joueur_input(label, key):
 
     return selection if selection != "Sélectionner" else joueur
 
+# --- Saisie des scores set par set ---
+def set_input(set_num, joueur1, joueur2):
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown(f"**{joueur1 or 'Joueur 1'}**")
+        s1 = st.number_input(f"Set {set_num} - {joueur1 or 'Joueur 1'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j1", label_visibility="collapsed")
+    with col2:
+        st.markdown(f"**{joueur2 or 'Joueur 2'}**")
+        s2 = st.number_input(f"Set {set_num} - {joueur2 or 'Joueur 2'}", min_value=0, max_value=30, step=1, key=f"set{set_num}_j2", label_visibility="collapsed")
+    return f"{s1}-{s2}" if (s1 != 0 or s2 != 0) else ""
+
 # --- Calcul du classement ---
 def calculer_classement():
-    joueurs = {}
+    from collections import defaultdict
+    joueurs = defaultdict(lambda: {
+        'Nom du joueur': "",
+        'Points de victoire': 0,
+        'Matchs joués': 0,
+        'Points totaux': 0
+    })
     victoires = {}
 
     for match in st.session_state.matchs:
@@ -52,14 +69,8 @@ def calculer_classement():
         gagnant = match['vainqueur']
         scores = match['scores']
 
-        for joueur in [j1, j2]:
-            if joueur not in joueurs:
-                joueurs[joueur] = {
-                    'Nom du joueur': joueur,
-                    'Points de victoire': 0,
-                    'Matchs joués': 0,
-                    'Points totaux': 0
-                }
+        joueurs[j1]['Nom du joueur'] = j1
+        joueurs[j2]['Nom du joueur'] = j2
 
         joueurs[j1]['Matchs joués'] += 1
         joueurs[j2]['Matchs joués'] += 1
@@ -94,7 +105,7 @@ def calculer_classement():
     return classement
 
 def medal(rank):
-    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
+    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵈ")
 
 # --- Déterminer le vainqueur ---
 def determiner_vainqueur(sets, joueur1, joueur2):
@@ -114,9 +125,9 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 # --- INTERFACE ---
-st.title("🏸 Gestion de Tournoi de Badminton")
+st.title("🎈 Gestion de Tournoi de Badminton")
 
-tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
+tab1, tab2 = st.tabs(["🎈 Tournoi", "📜 Historique"])
 
 # --- Onglet 1 ---
 with tab1:
@@ -125,15 +136,10 @@ with tab1:
     joueur1 = joueur_input("Joueur 1", "joueur1")
     joueur2 = joueur_input("Joueur 2", "joueur2")
 
-    with st.container():
-        st.markdown("**🎯 Résultats des sets :**")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            set1 = st.text_input("Set 1 (ex: 21-15)", key="set1", value="" if st.session_state.reset_pending else st.session_state.get("set1", ""))
-        with col2:
-            set2 = st.text_input("Set 2 (ex: 19-21)", key="set2", value="" if st.session_state.reset_pending else st.session_state.get("set2", ""))
-        with col3:
-            set3 = st.text_input("Set 3 (ex: 21-19)", key="set3", value="" if st.session_state.reset_pending else st.session_state.get("set3", ""))
+    st.markdown("**🎯 Résultats des sets :**")
+    set1 = set_input(1, joueur1, joueur2)
+    set2 = set_input(2, joueur1, joueur2)
+    set3 = set_input(3, joueur1, joueur2)
 
     if st.session_state.reset_pending:
         st.session_state.reset_pending = False
