@@ -82,7 +82,21 @@ def calculer_classement():
         by=['Points de victoire', 'Matchs joués'],
         ascending=[False, True]
     ).reset_index(drop=True)
+
+    # Ajout des médailles 🏅
+    def ajouter_medaille(row):
+        if row.name == 0:
+            return "🥇"
+        elif row.name == 1:
+            return "🥈"
+        elif row.name == 2:
+            return "🥉"
+        return ""
+
+    classement["🏅"] = classement.apply(ajouter_medaille, axis=1)
+
     return classement
+
 
 # Fonction pour déterminer le gagnant
 def determiner_vainqueur(sets):
