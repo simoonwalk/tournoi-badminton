@@ -5,6 +5,9 @@ import re
 # --- Style CSS personnalisé ---
 st.markdown("""
     <style>
+    .stElementToolbar {
+        display:none!important;
+    }
         /* --- Mise en page compacte --- */
     .block-container {
         padding-top: 1rem;
