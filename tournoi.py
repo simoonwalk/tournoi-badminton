@@ -20,10 +20,18 @@ for key, value in init_state.items():
 if 'matchs' not in st.session_state:
     st.session_state.matchs = []
 
+if 'reset_pending' not in st.session_state:
+    st.session_state.reset_pending = False
+
 # --- Fonction de réinitialisation des champs ---
 def reset_fields():
     for key in init_state:
-        st.session_state[key] = init_state[key]
+        if key in st.session_state:
+            del st.session_state[key]  # supprime les valeurs pour éviter conflit avec les widgets
+    st.session_state.reset_pending = False
+
+if st.session_state.reset_pending:
+    reset_fields()
 
 # --- Extraction des joueurs existants ---
 def get_all_players():
@@ -40,13 +48,13 @@ def joueur_input(label, key):
 
     col1, col2 = st.columns([3, 1])
     with col1:
-        joueur = st.text_input(label, value=st.session_state[f"text_{key}"], key=f"text_{key}")
+        joueur = st.text_input(label, value=st.session_state.get(f"text_{key}", ""), key=f"text_{key}")
     with col2:
         selection = st.selectbox(" ", options, key=f"select_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
-# --- Fonction de calcul du classement ---
+# --- Calcul du classement ---
 def calculer_classement():
     joueurs = {}
     victoires = {}
@@ -120,12 +128,12 @@ def determiner_vainqueur(sets, joueur1, joueur2):
         return None
     return joueur1 if j1 > j2 else joueur2
 
-# --- INTERFACE ---
+# --- INTERFACE PRINCIPALE ---
 st.title("🏸 Gestion de Tournoi de Badminton")
 
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
 
-# --- Onglet 1 : Saisie + Classement ---
+# --- Onglet 1 ---
 with tab1:
     st.subheader("1. Enregistrement d'un match")
 
@@ -154,7 +162,8 @@ with tab1:
                     'vainqueur': vainqueur
                 })
                 st.success(f"Match enregistré ! Vainqueur : {vainqueur}")
-                reset_fields()
+                st.session_state.reset_pending = True
+                st.experimental_rerun()
             else:
                 st.error("Aucun joueur n’a gagné un set valide.")
         else:
@@ -167,7 +176,7 @@ with tab1:
     else:
         st.info("Aucun match enregistré pour le moment.")
 
-# --- Onglet 2 : Historique ---
+# --- Onglet 2 ---
 with tab2:
     st.subheader("📜 Historique des matchs")
 
