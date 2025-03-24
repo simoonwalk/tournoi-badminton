@@ -42,6 +42,8 @@ def calculer_classement():
             joueurs[j1]['Jeux marqués'] += score_j1
             joueurs[j2]['Jeux marqués'] += score_j2
 
+        perdant = j2 if gagnant == j1 else j1
+
         key = tuple(sorted([j1, j2]))
         if key not in victoires:
             victoires[key] = {j1: 0, j2: 0}
@@ -63,8 +65,8 @@ def calculer_classement():
     ).reset_index(drop=True)
     return classement
 
-# Fonction corrigée pour déterminer le gagnant
-def determiner_vainqueur(sets, joueur1, joueur2):
+# Fonction pour déterminer le gagnant
+def determiner_vainqueur(sets):
     j1, j2 = 0, 0
     for s in sets:
         try:
@@ -100,7 +102,7 @@ with col3:
 if st.button("✅ Enregistrer le match"):
     sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
     if joueur1 and joueur2 and joueur1 != joueur2 and sets:
-        vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
+        vainqueur = determiner_vainqueur(sets)
         if vainqueur:
             st.session_state.matchs.append({
                 'joueur1': joueur1,
@@ -114,12 +116,12 @@ if st.button("✅ Enregistrer le match"):
     else:
         st.error("Veuillez saisir deux joueurs différents et au moins un set valide.")
 
-# Section 2 : Classement dynamique (sans téléchargement possible)
+# Section 2 : Classement dynamique
 st.header("2. Classement des joueurs")
 
 if st.session_state.matchs:
     classement_df = calculer_classement()
-    st.table(classement_df)
+    st.dataframe(classement_df)
 else:
     st.info("Aucun match enregistré pour le moment.")
 
