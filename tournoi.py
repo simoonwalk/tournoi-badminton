@@ -27,7 +27,7 @@ if 'reset_pending' not in st.session_state:
 def reset_fields():
     for key in init_state:
         if key in st.session_state:
-            del st.session_state[key]  # supprime les valeurs pour éviter conflit avec les widgets
+            del st.session_state[key]
     st.session_state.reset_pending = False
 
 if st.session_state.reset_pending:
@@ -41,16 +41,16 @@ def get_all_players():
         players.add(match['joueur2'])
     return sorted(players)
 
-# --- Champ de saisie hybride (texte + liste) ---
+# --- Champ de saisie hybride (dropdown à gauche, texte à droite) ---
 def joueur_input(label, key):
     players = get_all_players()
     options = ["Sélectionner"] + players
 
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([1, 3])
     with col1:
-        joueur = st.text_input(label, value=st.session_state.get(f"text_{key}", ""), key=f"text_{key}")
-    with col2:
         selection = st.selectbox(" ", options, key=f"select_{key}")
+    with col2:
+        joueur = st.text_input(label, value=st.session_state.get(f"text_{key}", ""), key=f"text_{key}")
 
     return selection if selection != "Sélectionner" else joueur
 
@@ -81,8 +81,6 @@ def calculer_classement():
             score_j1, score_j2 = map(int, s.split('-'))
             joueurs[j1]['Points totaux'] += score_j1
             joueurs[j2]['Points totaux'] += score_j2
-
-        perdant = j2 if gagnant == j1 else j1
 
         key = tuple(sorted([j1, j2]))
         if key not in victoires:
