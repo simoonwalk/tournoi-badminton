@@ -31,6 +31,9 @@ st.markdown("""
     .stColumns {
         gap: 0.5rem !important;
     }
+    h1 {
+        padding-top:3em;
+    }
     </style>
 """, unsafe_allow_html=True)
 
