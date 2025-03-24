@@ -118,8 +118,6 @@ def medal(rank):
 st.title("🏸 Tournoi de Badminton")
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
 
-# Le reste de l'interface complète est ajouté ci-dessous, intégrant les appels à st.cache_data.clear() après chaque opération importante.
-
 with tab1:
     st.subheader("1. Enregistrement d'un match")
 
@@ -132,7 +130,7 @@ with tab1:
     set3 = set_input(3, joueur1, joueur2)
 
     if st.button("✅ Enregistrer le match"):
-        sets = [s for s in [set1, set2, set3] if re.match(r'^\\d{1,2}-\\d{1,2}$', s)]
+        sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
         if joueur1 and joueur2 and joueur1 != joueur2 and sets:
             vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
             if vainqueur:
@@ -154,7 +152,6 @@ with tab1:
 
     if st.session_state.reset_pending:
         st.session_state.reset_pending = False
-        st.rerun()
 
     st.subheader("2. Classement des joueurs")
     if st.session_state.matchs:
