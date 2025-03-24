@@ -79,13 +79,20 @@ def calculer_classement():
 
     classement = pd.DataFrame(joueurs.values())
     classement = classement.sort_values(
-        by=['Points de victoire', 'Matchs joués'],
-        ascending=[False, True]
+        by=['Points de victoire', 'Matchs joués', 'Points totaux'],
+        ascending=[False, True, False]
     ).reset_index(drop=True)
+
+    classement.index += 1  # Pour commencer à 1
+    classement.insert(0, "Rang", [medal(i) for i in classement.index])
     return classement
 
-# Fonction pour déterminer le gagnant
-def determiner_vainqueur(sets):
+# 🏅 Fonctions pour afficher des médailles podium
+def medal(rank):
+    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
+
+# ✅ Correction : Fonction déterminant le vainqueur
+def determiner_vainqueur(sets, joueur1, joueur2):
     j1, j2 = 0, 0
     for s in sets:
         try:
@@ -113,18 +120,20 @@ with tab1:
     joueur1 = joueur_input("Joueur 1", "joueur1")
     joueur2 = joueur_input("Joueur 2", "joueur2")
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
-    with col2:
-        set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
-    with col3:
-        set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
+    with st.container():
+        st.markdown("**🎯 Résultats des sets :**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
+        with col2:
+            set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
+        with col3:
+            set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
 
     if st.button("✅ Enregistrer le match"):
         sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
         if joueur1 and joueur2 and joueur1 != joueur2 and sets:
-            vainqueur = determiner_vainqueur(sets)
+            vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
             if vainqueur:
                 st.session_state.matchs.append({
                     'joueur1': joueur1,
@@ -158,20 +167,18 @@ with tab2:
             key = tuple(sorted([j1, j2]))
             rencontre_compteur[key] = rencontre_compteur.get(key, 0) + 1
 
-            col1, col2, col3 = st.columns([7, 2, 1])
-
-            with col1:
-                st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
-                st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
-
-            with col2:
-                if st.button("🗑️", key=f"del_{i}"):
-                    del st.session_state.matchs[i]
-                    st.rerun()
-
-            with col3:
-                if st.checkbox(" ", key=f"check_{i}"):
-                    selected_to_delete.append(i)
+            with st.container():
+                col1, col2, col3 = st.columns([7, 2, 1])
+                with col1:
+                    st.markdown(f"**{j1} vs {j2}** — {rencontre_compteur[key]}ᵉ rencontre")
+                    st.markdown(f"**Scores :** {', '.join(match['scores'])} — **Vainqueur : {match['vainqueur']}**")
+                with col2:
+                    if st.button("🗑️", key=f"del_{i}"):
+                        del st.session_state.matchs[i]
+                        st.rerun()
+                with col3:
+                    if st.checkbox(" ", key=f"check_{i}"):
+                        selected_to_delete.append(i)
 
         if selected_to_delete:
             if st.button("🗑️ Supprimer la sélection"):
@@ -180,5 +187,10 @@ with tab2:
                 st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
                 st.rerun()
 
+        st.markdown("---")
+        if st.button("♻️ Réinitialiser tous les matchs"):
+            st.session_state.matchs.clear()
+            st.success("Tous les matchs ont été réinitialisés.")
+            st.rerun()
     else:
         st.info("Aucun match enregistré.")
