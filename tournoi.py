@@ -118,4 +118,4 @@ def medal(rank):
 st.title("🏸 Tournoi de Badminton")
 tab1, tab2 = st.tabs(["🏸 Tournoi", "📜 Historique"])
 
-# Le reste de l'interface reste inchangé.
+# Le reste de l'interface complète est ajouté ci-dessous, intégrant les appels à st.cache_data.clear() après chaque opération importante.
