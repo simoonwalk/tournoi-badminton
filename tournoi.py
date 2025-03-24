@@ -7,6 +7,8 @@ if 'match_to_delete' not in st.session_state:
     st.session_state.match_to_delete = None
 if 'just_deleted' not in st.session_state:
     st.session_state.just_deleted = False
+if 'confirm_delete' not in st.session_state:
+    st.session_state.confirm_delete = False
 
 # Initialisation des données
 if 'matchs' not in st.session_state:
@@ -94,12 +96,10 @@ def calculer_classement():
         return ""
 
     classement["🏅"] = classement.apply(ajouter_medaille, axis=1)
-
     return classement
 
-
-# Fonction pour déterminer le gagnant
-def determiner_vainqueur(sets):
+# Fonction pour déterminer le gagnant (refactor)
+def determiner_vainqueur(sets, joueur1, joueur2):
     j1, j2 = 0, 0
     for s in sets:
         try:
@@ -127,18 +127,25 @@ with tab1:
     joueur1 = joueur_input("Joueur 1", "joueur1")
     joueur2 = joueur_input("Joueur 2", "joueur2")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         set1 = st.text_input("Set 1 (ex: 21-15)", key="set1")
     with col2:
         set2 = st.text_input("Set 2 (ex: 19-21)", key="set2")
-    with col3:
+
+    set3 = ""
+    if set1 and set2:
         set3 = st.text_input("Set 3 (ex: 21-19)", key="set3")
 
     if st.button("✅ Enregistrer le match"):
-        sets = [s for s in [set1, set2, set3] if re.match(r'^\d{1,2}-\d{1,2}$', s)]
-        if joueur1 and joueur2 and joueur1 != joueur2 and sets:
-            vainqueur = determiner_vainqueur(sets)
+        sets_raw = [set1, set2, set3] if set3 else [set1, set2]
+        sets = [s for s in sets_raw if re.match(r'^\d{1,2}-\d{1,2}$', s)]
+
+        invalid_sets = [s for s in sets_raw if s and not re.match(r'^\d{1,2}-\d{1,2}$', s)]
+        if invalid_sets:
+            st.error(f"Format invalide pour les sets : {', '.join(invalid_sets)}. Format attendu : xx-yy")
+        elif joueur1 and joueur2 and joueur1 != joueur2 and sets:
+            vainqueur = determiner_vainqueur(sets, joueur1, joueur2)
             if vainqueur:
                 st.session_state.matchs.append({
                     'joueur1': joueur1,
@@ -158,6 +165,12 @@ with tab1:
         st.dataframe(classement_df)
     else:
         st.info("Aucun match enregistré pour le moment.")
+
+    st.subheader("3. Réinitialisation du tournoi")
+    if st.button("🔄 Réinitialiser le tournoi"):
+        st.session_state.matchs = []
+        st.success("Tous les matchs ont été supprimés.")
+        st.rerun()
 
 # --- Onglet 2 : Historique des matchs ---
 with tab2:
@@ -188,11 +201,12 @@ with tab2:
                     selected_to_delete.append(i)
 
         if selected_to_delete:
-            if st.button("🗑️ Supprimer la sélection"):
-                for index in sorted(selected_to_delete, reverse=True):
-                    del st.session_state.matchs[index]
-                st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
-                st.rerun()
-
+            st.session_state.confirm_delete = st.checkbox("⚠️ Je confirme la suppression des matchs sélectionnés")
+            if st.session_state.confirm_delete:
+                if st.button("🗑️ Supprimer la sélection"):
+                    for index in sorted(selected_to_delete, reverse=True):
+                        del st.session_state.matchs[index]
+                    st.success(f"{len(selected_to_delete)} match(s) supprimé(s)")
+                    st.rerun()
     else:
         st.info("Aucun match enregistré.")
