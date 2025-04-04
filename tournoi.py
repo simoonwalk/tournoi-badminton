@@ -73,6 +73,10 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 def calculer_classement():
+    from collections import defaultdict
+    import json
+    import pandas as pd
+
     joueurs = defaultdict(lambda: {'Nom': '', 'Matchs joués': 0, 'Score cumulé': 0, 'Points de victoire': 0})
     victoires = {}
 
@@ -106,17 +110,23 @@ def calculer_classement():
         else:
             joueurs[gagnant]['Points de victoire'] += 1
 
-    classement = pd.DataFrame(joueurs.values()).sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
+    classement = pd.DataFrame(joueurs.values())
 
-    # Réorganiser les colonnes : "Points de victoire" à droite
+    # Tri
+    classement = classement.sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
+
+    # Réinitialiser l'index pour éviter qu'il devienne une colonne
+    classement = classement.reset_index(drop=True)
+
+    # Ajouter une colonne "Classement" (de 1 à n)
+    classement.insert(0, "Classement", range(1, len(classement) + 1))
+
+    # Réorganiser les colonnes pour mettre "Points de victoire" à la fin
     cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
     classement = classement[cols]
 
-    # Réinitialiser l'index et ajouter une vraie colonne Classement
-    classement = classement.reset_index(drop=True)
-    classement.insert(0, "Classement", classement.index + 1)
-
     return classement
+
 
 
 # --- INTERFACE STREAMLIT ---
