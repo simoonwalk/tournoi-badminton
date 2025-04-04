@@ -106,17 +106,21 @@ def calculer_classement():
         else:
             joueurs[gagnant]['Points de victoire'] += 1
 
-    # Construction du DataFrame et tri
+    # Création du DataFrame
     classement = pd.DataFrame(joueurs.values()).sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
 
-    # Réorganisation des colonnes : "Points de victoire" à la fin
+    # Réorganiser les colonnes : mettre "Points de victoire" à droite
     cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
     classement = classement[cols]
 
-    # Supprimer l'index numérique
+    # Ajouter une colonne "Classement" explicite
+    classement.insert(0, "Classement", range(1, len(classement) + 1))
+
+    # Supprimer l'index automatique
     classement = classement.reset_index(drop=True)
 
     return classement
+
 
 
 
