@@ -73,7 +73,7 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 def calculer_classement():
-    joueurs = defaultdict(lambda: {'Nom': '', 'Points de victoire': 0, 'Matchs': 0, 'Total': 0})
+    joueurs = defaultdict(lambda: {'Nom': '', 'Matchs joués': 0, 'Score cumulé': 0, 'Points de victoire': 0})
     victoires = {}
 
     for match in st.session_state.matchs:
@@ -84,13 +84,13 @@ def calculer_classement():
         joueurs[j1]['Nom'] = j1
         joueurs[j2]['Nom'] = j2
 
-        joueurs[j1]['Matchs'] += 1
-        joueurs[j2]['Matchs'] += 1
+        joueurs[j1]['Matchs joués'] += 1
+        joueurs[j2]['Matchs joués'] += 1
 
         for score in scores:
             s1, s2 = map(int, score.split('-'))
-            joueurs[j1]['Total'] += s1
-            joueurs[j2]['Total'] += s2
+            joueurs[j1]['Score cumulé'] += s1
+            joueurs[j2]['Score cumulé'] += s2
 
         adversaires = tuple(sorted([j1, j2]))
         if adversaires not in victoires:
@@ -106,16 +106,18 @@ def calculer_classement():
         else:
             joueurs[gagnant]['Points de victoire'] += 1
 
-    # Construction du DataFrame
-    classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points de victoire', 'Total'], ascending=[False, False])
+    # Construction du DataFrame et tri
+    classement = pd.DataFrame(joueurs.values()).sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
 
-    # Réorganiser les colonnes pour mettre "Points de victoire" à droite
+    # Réorganisation des colonnes : "Points de victoire" à la fin
     cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
     classement = classement[cols]
 
-    return classement
-    
+    # Supprimer l'index numérique
     classement = classement.reset_index(drop=True)
+
+    return classement
+
 
 
 # --- INTERFACE STREAMLIT ---
