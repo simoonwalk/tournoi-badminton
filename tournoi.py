@@ -114,6 +114,8 @@ def calculer_classement():
     classement = classement[cols]
 
     return classement
+    
+    classement = classement.reset_index(drop=True)
 
 
 # --- INTERFACE STREAMLIT ---
