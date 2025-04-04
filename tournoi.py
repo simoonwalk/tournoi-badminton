@@ -107,12 +107,9 @@ def calculer_classement():
             joueurs[gagnant]['Points'] += 1
 
     classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points', 'Total'], ascending=[False, False])
-    classement.index += 1
-    classement.insert(0, "Rang", [medal(i) for i in classement.index])
+    classement.index += 1  # Pour commencer le rang à 1
+    classement.insert(0, "Rang", classement.index)  # Colonne Rang simple
     return classement
-
-def medal(rank):
-    return {1: "🥇", 2: "🥈", 3: "🥉"}.get(rank, f"{rank}ᵉ")
 
 # --- INTERFACE STREAMLIT ---
 st.title("🏸 Tournoi de Badminton")
