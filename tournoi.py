@@ -73,7 +73,7 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 def calculer_classement():
-    joueurs = defaultdict(lambda: {'Nom': '', 'Points': 0, 'Matchs': 0, 'Total': 0})
+    joueurs = defaultdict(lambda: {'Nom': '', 'Points de victoire': 0, 'Matchs': 0, 'Total': 0})
     victoires = {}
 
     for match in st.session_state.matchs:
@@ -100,17 +100,17 @@ def calculer_classement():
         nb_victoires = victoires[adversaires][gagnant]
 
         if nb_victoires == 1:
-            joueurs[gagnant]['Points'] += 5
+            joueurs[gagnant]['Points de victoire'] += 5
         elif nb_victoires == 2:
-            joueurs[gagnant]['Points'] += 3
+            joueurs[gagnant]['Points de victoire'] += 3
         else:
-            joueurs[gagnant]['Points'] += 1
+            joueurs[gagnant]['Points de victoire'] += 1
 
     # Construction du DataFrame
-    classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points', 'Total'], ascending=[False, False])
+    classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points de victoire', 'Total'], ascending=[False, False])
 
-    # Réorganiser les colonnes pour mettre "Points" à droite
-    cols = [col for col in classement.columns if col != "Points"] + ["Points"]
+    # Réorganiser les colonnes pour mettre "Points de victoire" à droite
+    cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
     classement = classement[cols]
 
     return classement
