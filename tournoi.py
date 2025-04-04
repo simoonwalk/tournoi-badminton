@@ -1,3 +1,16 @@
+def afficher_dataframe_sans_index(df):
+    st.markdown(
+        """
+        <style>
+            thead tr th:first-child {display:none}
+            tbody th {display:none}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    st.dataframe(df)
+
+
 import streamlit as st
 from supabase_client import init_supabase
 import re
@@ -73,10 +86,6 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 def calculer_classement():
-    from collections import defaultdict
-    import json
-    import pandas as pd
-
     joueurs = defaultdict(lambda: {'Nom': '', 'Matchs joués': 0, 'Score cumulé': 0, 'Points de victoire': 0})
     victoires = {}
 
@@ -112,20 +121,16 @@ def calculer_classement():
 
     classement = pd.DataFrame(joueurs.values())
 
-    # Tri
     classement = classement.sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
-
-    # Réinitialiser l'index pour éviter qu'il devienne une colonne
     classement = classement.reset_index(drop=True)
-
-    # Ajouter une colonne "Classement" (de 1 à n)
     classement.insert(0, "Classement", range(1, len(classement) + 1))
 
-    # Réorganiser les colonnes pour mettre "Points de victoire" à la fin
+    # Mettre "Points de victoire" à la fin
     cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
     classement = classement[cols]
 
     return classement
+
 
 
 
