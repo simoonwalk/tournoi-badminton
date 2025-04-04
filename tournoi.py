@@ -1,16 +1,3 @@
-def afficher_dataframe_sans_index(df):
-    st.markdown(
-        """
-        <style>
-            thead tr th:first-child {display:none}
-            tbody th {display:none}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
-    st.dataframe(df)
-
-
 import streamlit as st
 from supabase_client import init_supabase
 import re
@@ -86,7 +73,7 @@ def determiner_vainqueur(sets, joueur1, joueur2):
     return joueur1 if j1 > j2 else joueur2
 
 def calculer_classement():
-    joueurs = defaultdict(lambda: {'Nom': '', 'Matchs joués': 0, 'Score cumulé': 0, 'Points de victoire': 0})
+    joueurs = defaultdict(lambda: {'Nom': '', 'Points': 0, 'Matchs': 0, 'Total': 0})
     victoires = {}
 
     for match in st.session_state.matchs:
@@ -97,13 +84,13 @@ def calculer_classement():
         joueurs[j1]['Nom'] = j1
         joueurs[j2]['Nom'] = j2
 
-        joueurs[j1]['Matchs joués'] += 1
-        joueurs[j2]['Matchs joués'] += 1
+        joueurs[j1]['Matchs'] += 1
+        joueurs[j2]['Matchs'] += 1
 
         for score in scores:
             s1, s2 = map(int, score.split('-'))
-            joueurs[j1]['Score cumulé'] += s1
-            joueurs[j2]['Score cumulé'] += s2
+            joueurs[j1]['Total'] += s1
+            joueurs[j2]['Total'] += s2
 
         adversaires = tuple(sorted([j1, j2]))
         if adversaires not in victoires:
@@ -113,26 +100,14 @@ def calculer_classement():
         nb_victoires = victoires[adversaires][gagnant]
 
         if nb_victoires == 1:
-            joueurs[gagnant]['Points de victoire'] += 5
+            joueurs[gagnant]['Points'] += 5
         elif nb_victoires == 2:
-            joueurs[gagnant]['Points de victoire'] += 3
+            joueurs[gagnant]['Points'] += 3
         else:
-            joueurs[gagnant]['Points de victoire'] += 1
+            joueurs[gagnant]['Points'] += 1
 
-    classement = pd.DataFrame(joueurs.values())
-
-    classement = classement.sort_values(by=["Points de victoire", "Score cumulé"], ascending=[False, False])
-    classement = classement.reset_index(drop=True)
-    classement.insert(0, "Classement", range(1, len(classement) + 1))
-
-    # Mettre "Points de victoire" à la fin
-    cols = [col for col in classement.columns if col != "Points de victoire"] + ["Points de victoire"]
-    classement = classement[cols]
-
+    classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points', 'Total'], ascending=[False, False])
     return classement
-
-
-
 
 # --- INTERFACE STREAMLIT ---
 st.title("🏸 Tournoi de Badminton")
@@ -176,7 +151,7 @@ with tab1:
     st.subheader("2. Classement des joueurs")
     if st.session_state.matchs:
         classement_df = calculer_classement()
-        st.table(classement_df)
+        st.dataframe(classement_df)
     else:
         st.info("Aucun match enregistré pour le moment.")
 
