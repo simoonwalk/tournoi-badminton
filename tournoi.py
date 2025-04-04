@@ -161,7 +161,7 @@ with tab1:
     st.subheader("2. Classement des joueurs")
     if st.session_state.matchs:
         classement_df = calculer_classement()
-        st.dataframe(classement_df)
+        st.table(classement_df)
     else:
         st.info("Aucun match enregistré pour le moment.")
 
