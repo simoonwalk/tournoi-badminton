@@ -106,10 +106,15 @@ def calculer_classement():
         else:
             joueurs[gagnant]['Points'] += 1
 
+    # Construction du DataFrame
     classement = pd.DataFrame(joueurs.values()).sort_values(by=['Points', 'Total'], ascending=[False, False])
-    classement.index += 1  # Pour commencer le rang à 1
-    classement.insert(0, "Rang", classement.index)  # Colonne Rang simple
+
+    # Réorganiser les colonnes pour mettre "Points" à droite
+    cols = [col for col in classement.columns if col != "Points"] + ["Points"]
+    classement = classement[cols]
+
     return classement
+
 
 # --- INTERFACE STREAMLIT ---
 st.title("🏸 Tournoi de Badminton")
